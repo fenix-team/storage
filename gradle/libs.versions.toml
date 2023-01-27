@@ -1,0 +1,13 @@
+[versions]
+annotations = "23.0.0"
+gson = "2.9.0"
+mongo-driver = "4.7.0"
+jedis = "4.2.3"
+spigot = "1.8.8-R0.1-SNAPSHOT"
+
+[libraries]
+annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+mongo-driver = { module = "org.mongodb:mongodb-driver-sync", name = "mongo-driver", version.ref = "mongo-driver" }
+jedis = { group = "redis.clients", name = "jedis", version.ref = "jedis" }
+spigot = { module = "org.spigotmc:spigot-api", name = "spigot", version.ref = "spigot" }
