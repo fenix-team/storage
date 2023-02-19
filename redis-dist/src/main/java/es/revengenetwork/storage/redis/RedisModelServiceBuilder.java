@@ -8,7 +8,6 @@ import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
 import es.revengenetwork.storage.dist.DelegatedCachedModelService;
 import es.revengenetwork.storage.model.Model;
-import ml.stargirls.storage.util.Validate;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.JedisPool;
@@ -63,8 +62,10 @@ public class RedisModelServiceBuilder<T extends Model, Reader extends ModelReade
   }
 
   @Contract("_ -> this")
-  public RedisModelServiceBuilder<T, Reader> modelReader(@NotNull ModelCodec.Reader<T, JsonObject
-                                                                                       , Reader> reader) {
+  public RedisModelServiceBuilder<T, Reader> modelReader(
+    @NotNull ModelCodec.Reader<T, JsonObject
+                                , Reader> reader
+  ) {
     this.reader = reader;
     return back();
   }
@@ -90,9 +91,6 @@ public class RedisModelServiceBuilder<T extends Model, Reader extends ModelReade
   @Override
   public ModelService<T> build() {
     check();
-    Validate.notNull(gson, "gson");
-    Validate.notNull(tableName, "tableName");
-    Validate.notNull(jedisPool, "jedisPool");
 
     if (expireAfterSave <= 0) {
       expireAfterSave = -1;

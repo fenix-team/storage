@@ -5,7 +5,6 @@ import es.revengenetwork.storage.ModelService;
 import es.revengenetwork.storage.builder.LayoutModelServiceBuilder;
 import es.revengenetwork.storage.dist.DelegatedCachedModelService;
 import es.revengenetwork.storage.model.Model;
-import ml.stargirls.storage.util.Validate;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,11 +40,9 @@ public class GsonModelServiceBuilder<T extends Model>
   @Override
   public ModelService<T> build() {
     check();
-    Validate.notNull(gson, "gson");
-    Validate.notNull(folder, "folder");
 
     if (!folder.exists()) {
-      Validate.state(folder.mkdirs(), "Failed to create folder: " + folder.getName());
+      folder.mkdirs();
     }
 
     ModelService<T> modelService = new GsonModelService<>(

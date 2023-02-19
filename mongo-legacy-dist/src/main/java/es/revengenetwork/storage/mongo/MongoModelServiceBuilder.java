@@ -8,7 +8,6 @@ import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
 import es.revengenetwork.storage.dist.DelegatedCachedModelService;
 import es.revengenetwork.storage.model.Model;
-import ml.stargirls.storage.util.Validate;
 import org.bson.Document;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -64,10 +63,6 @@ public class MongoModelServiceBuilder<T extends Model, Reader extends ModelReade
   @Override
   public ModelService<T> build() {
     check();
-    Validate.notNull(modelReader, "modelParser");
-    Validate.notNull(database, "database");
-    Validate.notNull(collectionName, "collectionName");
-
     MongoCollection<Document> collection =
       database.getCollection(collectionName);
 
