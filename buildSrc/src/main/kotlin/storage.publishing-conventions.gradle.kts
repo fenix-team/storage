@@ -8,13 +8,8 @@ publishing {
     create<MavenPublication>("maven") {
       pom.withXml {
         val repositoriesNode = asNode().appendNode("repositories")
-        var index = 0
 
-        project.repositories.forEach {
-          if (it !is MavenArtifactRepository) {
-            return@forEach
-          }
-
+        project.repositories.withType(MavenArtifactRepository::class).forEach {
           val repositoryName = it.name
 
           if (repositoryName == "MavenLocal" || repositoryName == "MavenRepo") {
@@ -22,9 +17,7 @@ publishing {
           }
 
           repositoriesNode.appendNode("repository").apply {
-            val id = if (repositoryName == "maven") "repository-${++index}" else repositoryName
-
-            appendNode("id", id)
+            appendNode("id", repositoryName)
             appendNode("url", it.url.toString())
           }
         }
