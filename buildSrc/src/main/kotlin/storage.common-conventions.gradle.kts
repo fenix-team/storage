@@ -1,22 +1,20 @@
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-
 plugins {
-    `java-library`
+  `java-library`
 }
 
 repositories {
-    mavenLocal()
-    mavenCentral()
+  mavenLocal()
+  mavenCentral()
 }
 
 tasks {
-    java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(17))
-        }
+  java {
+    toolchain {
+      languageVersion.set(JavaLanguageVersion.of(17))
     }
+  }
 
-    compileJava {
-        options.compilerArgs.add("-parameters")
-    }
+  compileJava {
+    options.compilerArgs.add("-parameters")
+  }
 }

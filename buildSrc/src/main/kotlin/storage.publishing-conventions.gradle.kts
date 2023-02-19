@@ -1,20 +1,20 @@
 plugins {
-    id("storage.common-conventions")
-    `maven-publish`
+  id("storage.common-conventions")
+  `maven-publish`
 }
 
 publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-        }
+  publications {
+    create<MavenPublication>("maven") {
+      from(components["java"])
     }
+  }
 
-    repositories {
-        maven {
-            name = "stargirlsRepository"
-            url = uri("https://maven.pkg.github.com/sg-server/packages")
-            credentials(PasswordCredentials::class)
-        }
+  repositories {
+    maven {
+      name = "fenixRepository"
+      url = uri("https://maven.pkg.github.com/fenix-team/packages")
+      credentials(PasswordCredentials::class)
     }
+  }
 }

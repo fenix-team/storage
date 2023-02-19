@@ -1,8 +1,8 @@
 plugins {
-    id("storage.publishing-conventions")
+  id("storage.publishing-conventions")
 }
 
 dependencies {
-    api(project(":storage-api-codec"))
-    compileOnly(libs.gson)
+  api(project(":storage-api-codec"))
+  compileOnly(libs.gson)
 }

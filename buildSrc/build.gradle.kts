@@ -9,7 +9,7 @@ repositories {
 tasks {
     compileKotlin {
         kotlinOptions {
-            jvmTarget = "16"
+            jvmTarget = "17"
         }
     }
 }
