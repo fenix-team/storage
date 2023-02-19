@@ -11,6 +11,10 @@ publishing {
         var index = 0
 
         project.repositories.forEach {
+          if (it !is MavenArtifactRepository) {
+            return@forEach
+          }
+
           val repositoryName = it.name
 
           if (repositoryName == "MavenLocal" || repositoryName == "MavenRepo") {
@@ -21,7 +25,7 @@ publishing {
             val id = if (repositoryName == "maven") "repository-${++index}" else repositoryName
 
             appendNode("id", id)
-            appendNode("url", (it as MavenArtifactRepository).url.toString())
+            appendNode("url", it.url.toString())
           }
         }
       }
