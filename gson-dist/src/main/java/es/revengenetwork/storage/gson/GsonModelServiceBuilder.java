@@ -10,42 +10,42 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-public class GsonModelServiceBuilder<T extends Model>
-  extends LayoutModelServiceBuilder<T, GsonModelServiceBuilder<T>> {
+public class GsonModelServiceBuilder<ModelType extends Model>
+  extends LayoutModelServiceBuilder<ModelType, GsonModelServiceBuilder<ModelType>> {
 
   private Gson gson;
   private File folder;
 
-  protected GsonModelServiceBuilder(@NotNull Class<T> type) {
+  protected GsonModelServiceBuilder(@NotNull Class<ModelType> type) {
     super(type);
   }
 
   @Contract("_ -> this")
-  public GsonModelServiceBuilder<T> gson(@NotNull Gson gson) {
+  public GsonModelServiceBuilder<ModelType> gson(@NotNull Gson gson) {
     this.gson = gson;
     return back();
   }
 
   @Contract("_ -> this")
-  public GsonModelServiceBuilder<T> folder(@NotNull File folder) {
+  public GsonModelServiceBuilder<ModelType> folder(@NotNull File folder) {
     this.folder = folder;
     return back();
   }
 
   @Override
-  protected GsonModelServiceBuilder<T> back() {
+  protected GsonModelServiceBuilder<ModelType> back() {
     return this;
   }
 
   @Override
-  public ModelService<T> build() {
+  public ModelService<ModelType> build() {
     check();
 
     if (!folder.exists()) {
       folder.mkdirs();
     }
 
-    ModelService<T> modelService = new GsonModelService<>(
+    ModelService<ModelType> modelService = new GsonModelService<>(
       executor, gson,
       type, folder
     );

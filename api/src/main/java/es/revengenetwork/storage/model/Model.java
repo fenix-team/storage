@@ -8,10 +8,5 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface Model {
 
-  /**
-   * NOTE:This value cannot be null.
-   *
-   * @return the id of the model
-   */
   @NotNull String getId();
 }

@@ -10,12 +10,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class CaffeineModelService<T extends Model>
-  implements ModelService<T> {
+public class CaffeineModelService<ModelType extends Model>
+  implements ModelService<ModelType> {
 
-  private final Cache<String, T> cache;
+  private final Cache<String, ModelType> cache;
 
-  protected CaffeineModelService(Cache<String, T> cache) {
+  protected CaffeineModelService(Cache<String, ModelType> cache) {
     this.cache = cache;
   }
 
@@ -24,17 +24,17 @@ public class CaffeineModelService<T extends Model>
   }
 
   @Override
-  public @Nullable T findSync(@NotNull String id) {
+  public @Nullable ModelType findSync(@NotNull String id) {
     return cache.getIfPresent(id);
   }
 
   @Override
-  public @Nullable List<T> findSync(@NotNull String field, @NotNull String value) {
+  public @Nullable List<ModelType> findSync(@NotNull String field, @NotNull String value) {
     return Collections.singletonList(findSync(value));
   }
 
   @Override
-  public @Nullable List<T> findAllSync(@NotNull Consumer<T> postLoadAction) {
+  public @Nullable List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
     return cache.asMap()
              .values()
              .stream()
@@ -43,7 +43,7 @@ public class CaffeineModelService<T extends Model>
   }
 
   @Override
-  public void saveSync(@NotNull T model) {
+  public void saveSync(@NotNull ModelType model) {
     cache.put(model.getId(), model);
   }
 

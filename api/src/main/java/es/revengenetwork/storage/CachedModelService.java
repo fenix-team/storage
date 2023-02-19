@@ -8,52 +8,36 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
-public interface CachedModelService<T extends Model>
-  extends ModelService<T> {
+public interface CachedModelService<ModelType extends Model>
+  extends ModelService<ModelType> {
 
-  @Nullable T getSync(@NotNull String id);
+  @Nullable ModelType getSync(@NotNull String id);
 
-  @Nullable T getOrFindSync(@NotNull String id);
+  @Nullable ModelType getOrFindSync(@NotNull String id);
 
-  @Contract(pure = true)
-  @Nullable List<T> getAllSync();
+  @Nullable List<ModelType> getAllSync();
 
-  /**
-   * Uploads the model to the server
-   *
-   * @param model
-   *   The model to be uploaded.
-   */
-  @Contract(pure = true)
-  void uploadSync(@NotNull T model);
+  void uploadSync(@NotNull ModelType model);
 
-  /**
-   * Upload all the files in the current directory to the remote server
-   *
-   * @param preUploadAction
-   *   a function that takes a single parameter, which is the file to be uploaded.
-   */
-  @Contract(pure = true)
-  void uploadAllSync(@NotNull Consumer<T> preUploadAction);
+  void uploadAllSync(@NotNull Consumer<ModelType> preUploadAction);
 
-  @Contract(pure = true)
   default void uploadAllSync() {
-    uploadAllSync(t -> { });
+    uploadAllSync(modelType -> { });
   }
 
-  void saveInCacheSync(@NotNull T model);
+  void saveInCacheSync(@NotNull ModelType model);
 
   boolean deleteInCacheSync(@NotNull String id);
 
-  default boolean deleteInCacheSync(@NotNull T model) {
+  default boolean deleteInCacheSync(@NotNull ModelType model) {
     return deleteInCacheSync(model.getId());
   }
 
   @Contract(pure = true)
-  void saveAllSync(@NotNull Consumer<T> preSaveAction);
+  void saveAllSync(@NotNull Consumer<ModelType> preSaveAction);
 
   @Contract(pure = true)
   default void saveAllSync() {
-    saveAllSync(t -> { });
+    saveAllSync(modelType -> { });
   }
 }

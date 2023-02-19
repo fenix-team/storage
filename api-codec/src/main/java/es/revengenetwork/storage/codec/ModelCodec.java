@@ -5,14 +5,14 @@ import org.jetbrains.annotations.NotNull;
 public interface ModelCodec {
 
   @FunctionalInterface
-  interface Writer<T, ReadType> {
+  interface Writer<ModelType, ReadType> {
 
-    @NotNull ReadType serialize(@NotNull T object);
+    @NotNull ReadType serialize(@NotNull ModelType object);
   }
 
   @FunctionalInterface
-  interface Reader<T, ReadType, Reader extends ModelReader<?, ReadType>> {
+  interface Reader<ModelType, ReadType, Reader extends ModelReader<?, ReadType>> {
 
-    @NotNull T deserialize(@NotNull Reader reader);
+    @NotNull ModelType deserialize(@NotNull Reader reader);
   }
 }

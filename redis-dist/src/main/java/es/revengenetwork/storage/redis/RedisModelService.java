@@ -19,13 +19,13 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class RedisModelService<T extends Model, Reader extends ModelReader<Reader, JsonObject>>
-  extends RemoteModelService<T> {
+public class RedisModelService<ModelType extends Model, Reader extends ModelReader<Reader, JsonObject>>
+  extends RemoteModelService<ModelType> {
 
   private final Gson gson;
   private final Function<JsonObject, Reader> readerFactory;
-  private final ModelCodec.Writer<T, JsonObject> writer;
-  private final ModelCodec.Reader<T, JsonObject, Reader> reader;
+  private final ModelCodec.Writer<ModelType, JsonObject> writer;
+  private final ModelCodec.Reader<ModelType, JsonObject, Reader> reader;
   private final JedisPool jedisPool;
   private final String tableName;
   private final int expireAfterSave;
@@ -35,8 +35,8 @@ public class RedisModelService<T extends Model, Reader extends ModelReader<Reade
     @NotNull Executor executor,
     @NotNull Gson gson,
     @NotNull Function<JsonObject, Reader> readerFactory,
-    @NotNull ModelCodec.Writer<T, JsonObject> writer,
-    @NotNull ModelCodec.Reader<T, JsonObject, Reader> reader,
+    @NotNull ModelCodec.Writer<ModelType, JsonObject> writer,
+    @NotNull ModelCodec.Reader<ModelType, JsonObject, Reader> reader,
     @NotNull JedisPool jedisPool,
     @NotNull String tableName,
     int expireAfterSave,
@@ -63,7 +63,7 @@ public class RedisModelService<T extends Model, Reader extends ModelReader<Reade
   }
 
   @Override
-  public void saveSync(@NotNull T model) {
+  public void saveSync(@NotNull ModelType model) {
     try (Jedis jedis = jedisPool.getResource()) {
       JsonObject object = writer.serialize(model);
       Map<String, String> map = new HashMap<>(object.size());
@@ -89,7 +89,7 @@ public class RedisModelService<T extends Model, Reader extends ModelReader<Reade
   }
 
   @Override
-  public @Nullable T findSync(@NotNull String id) {
+  public @Nullable ModelType findSync(@NotNull String id) {
     try (Jedis jedis = jedisPool.getResource()) {
       String key = tableName + ":" + id;
       return readModel(jedis, key);
@@ -97,7 +97,7 @@ public class RedisModelService<T extends Model, Reader extends ModelReader<Reade
   }
 
   @Override
-  public List<T> findSync(@NotNull String field, @NotNull String value) {
+  public List<ModelType> findSync(@NotNull String field, @NotNull String value) {
     if (!field.equals(ModelService.ID_FIELD)) {
       throw new IllegalArgumentException(
         "Only ID field is supported for sync find"
@@ -108,7 +108,7 @@ public class RedisModelService<T extends Model, Reader extends ModelReader<Reade
   }
 
   @Override
-  public List<T> findAllSync(@NotNull Consumer<T> postLoadAction) {
+  public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
     try (Jedis jedis = jedisPool.getResource()) {
       Set<String> keys = jedis.keys(tableName + ":*");
 
@@ -116,10 +116,10 @@ public class RedisModelService<T extends Model, Reader extends ModelReader<Reade
         return Collections.emptyList();
       }
 
-      List<T> result = new ArrayList<>(keys.size());
+      List<ModelType> result = new ArrayList<>(keys.size());
 
       for (String key : keys) {
-        T model = readModel(jedis, key);
+        ModelType model = readModel(jedis, key);
 
         if (model == null) {
           continue;
@@ -133,7 +133,7 @@ public class RedisModelService<T extends Model, Reader extends ModelReader<Reade
     }
   }
 
-  private @Nullable T readModel(@NotNull Jedis jedis, @NotNull String key) {
+  private @Nullable ModelType readModel(@NotNull Jedis jedis, @NotNull String key) {
     Map<String, String> map = jedis.hgetAll(key);
 
     if (map.isEmpty()) {

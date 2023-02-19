@@ -14,9 +14,9 @@ import redis.clients.jedis.JedisPool;
 
 import java.util.function.Function;
 
-public class RedisModelServiceBuilder<T extends Model, Reader extends ModelReader<Reader,
-                                                                                   JsonObject>>
-  extends LayoutModelServiceBuilder<T, RedisModelServiceBuilder<T, Reader>> {
+public class RedisModelServiceBuilder
+  <ModelType extends Model, Reader extends ModelReader<Reader, JsonObject>>
+  extends LayoutModelServiceBuilder<ModelType, RedisModelServiceBuilder<ModelType, Reader>> {
 
   private Gson gson;
   private String tableName;
@@ -24,46 +24,46 @@ public class RedisModelServiceBuilder<T extends Model, Reader extends ModelReade
   private int expireAfterAccess;
   private JedisPool jedisPool;
   private Function<JsonObject, Reader> readerFactory;
-  private ModelCodec.Writer<T, JsonObject> writer;
-  private ModelCodec.Reader<T, JsonObject, Reader> reader;
+  private ModelCodec.Writer<ModelType, JsonObject> writer;
+  private ModelCodec.Reader<ModelType, JsonObject, Reader> reader;
 
-  protected RedisModelServiceBuilder(@NotNull Class<T> type) {
+  protected RedisModelServiceBuilder(@NotNull Class<ModelType> type) {
     super(type);
   }
 
   @Contract("_ -> this")
-  public @NotNull RedisModelServiceBuilder<T, Reader> gson(@NotNull Gson gson) {
+  public @NotNull RedisModelServiceBuilder<ModelType, Reader> gson(@NotNull Gson gson) {
     this.gson = gson;
     return back();
   }
 
   @Contract("_ -> this")
-  public @NotNull RedisModelServiceBuilder<T, Reader> tableName(@NotNull String tableName) {
+  public @NotNull RedisModelServiceBuilder<ModelType, Reader> tableName(@NotNull String tableName) {
     this.tableName = tableName;
     return back();
   }
 
   @Contract("_ -> this")
-  public @NotNull RedisModelServiceBuilder<T, Reader> expireAfterSave(int expireAfterSave) {
+  public @NotNull RedisModelServiceBuilder<ModelType, Reader> expireAfterSave(int expireAfterSave) {
     this.expireAfterSave = expireAfterSave;
     return back();
   }
 
   @Contract("_ -> this")
-  public @NotNull RedisModelServiceBuilder<T, Reader> expireAfterAccess(int expireAfterAccess) {
+  public @NotNull RedisModelServiceBuilder<ModelType, Reader> expireAfterAccess(int expireAfterAccess) {
     this.expireAfterAccess = expireAfterAccess;
     return back();
   }
 
   @Contract("_ -> this")
-  public @NotNull RedisModelServiceBuilder<T, Reader> jedisPool(@NotNull JedisPool jedisPool) {
+  public @NotNull RedisModelServiceBuilder<ModelType, Reader> jedisPool(@NotNull JedisPool jedisPool) {
     this.jedisPool = jedisPool;
     return back();
   }
 
   @Contract("_ -> this")
-  public RedisModelServiceBuilder<T, Reader> modelReader(
-    @NotNull ModelCodec.Reader<T, JsonObject
+  public RedisModelServiceBuilder<ModelType, Reader> modelReader(
+    @NotNull ModelCodec.Reader<ModelType, JsonObject
                                 , Reader> reader
   ) {
     this.reader = reader;
@@ -71,25 +71,25 @@ public class RedisModelServiceBuilder<T extends Model, Reader extends ModelReade
   }
 
   @Contract("_ -> this")
-  public RedisModelServiceBuilder<T, Reader> modelWriter(@NotNull ModelCodec.Writer<T, JsonObject> writer) {
+  public RedisModelServiceBuilder<ModelType, Reader> modelWriter(@NotNull ModelCodec.Writer<ModelType, JsonObject> writer) {
     this.writer = writer;
     return back();
   }
 
   @Contract("_ -> this")
-  public RedisModelServiceBuilder<T, Reader> readerFactory(@NotNull Function<JsonObject, Reader> readerFactory) {
+  public RedisModelServiceBuilder<ModelType, Reader> readerFactory(@NotNull Function<JsonObject, Reader> readerFactory) {
     this.readerFactory = readerFactory;
     return back();
   }
 
   @Contract(" -> this")
   @Override
-  protected @NotNull RedisModelServiceBuilder<T, Reader> back() {
+  protected @NotNull RedisModelServiceBuilder<ModelType, Reader> back() {
     return this;
   }
 
   @Override
-  public ModelService<T> build() {
+  public ModelService<ModelType> build() {
     check();
 
     if (expireAfterSave <= 0) {
@@ -100,7 +100,7 @@ public class RedisModelServiceBuilder<T extends Model, Reader extends ModelReade
       expireAfterAccess = -1;
     }
 
-    ModelService<T> modelService = new RedisModelService<>(
+    ModelService<ModelType> modelService = new RedisModelService<>(
       executor, gson, readerFactory, writer, reader, jedisPool,
       tableName, expireAfterSave, expireAfterAccess);
 

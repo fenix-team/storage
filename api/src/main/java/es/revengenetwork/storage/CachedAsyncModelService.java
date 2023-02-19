@@ -8,29 +8,29 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public interface CachedAsyncModelService<T extends Model> {
+public interface CachedAsyncModelService<ModelType extends Model> {
 
-  @NotNull CompletableFuture<@Nullable T> get(@NotNull String id);
+  @NotNull CompletableFuture<@Nullable ModelType> get(@NotNull String id);
 
-  @NotNull CompletableFuture<@Nullable T> getOrFind(@NotNull String id);
+  @NotNull CompletableFuture<@Nullable ModelType> getOrFind(@NotNull String id);
 
-  @NotNull CompletableFuture<@Nullable List<T>> getAll();
+  @NotNull CompletableFuture<@Nullable List<ModelType>> getAll();
 
-  @NotNull CompletableFuture<Void> upload(@NotNull T model);
+  @NotNull CompletableFuture<Void> upload(@NotNull ModelType model);
 
   @NotNull CompletableFuture<Void> uploadAll();
 
-  @NotNull CompletableFuture<Void> uploadAll(@NotNull Consumer<T> preUploadAction);
+  @NotNull CompletableFuture<Void> uploadAll(@NotNull Consumer<ModelType> preUploadAction);
 
-  @NotNull CompletableFuture<Void> saveInCache(@NotNull T model);
+  @NotNull CompletableFuture<Void> saveInCache(@NotNull ModelType model);
 
   @NotNull CompletableFuture<Void> deleteInCache(@NotNull String id);
 
-  default @NotNull CompletableFuture<Void> deleteInCache(@NotNull T model) {
+  default @NotNull CompletableFuture<Void> deleteInCache(@NotNull ModelType model) {
     return deleteInCache(model.getId());
   }
 
   @NotNull CompletableFuture<Void> saveAll();
 
-  @NotNull CompletableFuture<Void> saveAll(@NotNull Consumer<T> preSaveAction);
+  @NotNull CompletableFuture<Void> saveAll(@NotNull Consumer<ModelType> preSaveAction);
 }

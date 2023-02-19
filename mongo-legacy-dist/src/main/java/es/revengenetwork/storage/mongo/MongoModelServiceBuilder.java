@@ -14,28 +14,28 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public class MongoModelServiceBuilder<T extends Model, Reader extends ModelReader<Reader, Document>>
-  extends LayoutModelServiceBuilder<T, MongoModelServiceBuilder<T, Reader>> {
+public class MongoModelServiceBuilder<ModelType extends Model, Reader extends ModelReader<Reader, Document>>
+  extends LayoutModelServiceBuilder<ModelType, MongoModelServiceBuilder<ModelType, Reader>> {
 
   private MongoDatabase database;
   private String collectionName;
   private Function<Document, Reader> readerFactory;
-  private ModelCodec.Writer<T, Document> modelWriter;
-  private ModelCodec.Reader<T, Document, Reader> modelReader;
+  private ModelCodec.Writer<ModelType, Document> modelWriter;
+  private ModelCodec.Reader<ModelType, Document, Reader> modelReader;
 
-  protected MongoModelServiceBuilder(@NotNull Class<T> type) {
+  protected MongoModelServiceBuilder(@NotNull Class<ModelType> type) {
     super(type);
   }
 
   @Contract("_ -> this")
-  public MongoModelServiceBuilder<T, Reader> database(@NotNull MongoDatabase database) {
+  public MongoModelServiceBuilder<ModelType, Reader> database(@NotNull MongoDatabase database) {
     this.database = database;
     return this;
   }
 
   @Contract("_ -> this")
-  public MongoModelServiceBuilder<T, Reader> modelReader(
-    @NotNull ModelCodec.Reader<T, Document,
+  public MongoModelServiceBuilder<ModelType, Reader> modelReader(
+    @NotNull ModelCodec.Reader<ModelType, Document,
                                 Reader> modelReader
   ) {
     this.modelReader = modelReader;
@@ -43,30 +43,30 @@ public class MongoModelServiceBuilder<T extends Model, Reader extends ModelReade
   }
 
   @Contract("_ -> this")
-  public MongoModelServiceBuilder<T, Reader> modelWriter(@NotNull ModelCodec.Writer<T, Document> modelWriter) {
+  public MongoModelServiceBuilder<ModelType, Reader> modelWriter(@NotNull ModelCodec.Writer<ModelType, Document> modelWriter) {
     this.modelWriter = modelWriter;
     return this;
   }
 
   @Contract("_ -> this")
-  public MongoModelServiceBuilder<T, Reader> readerFactory(@NotNull Function<Document, Reader> readerFactory) {
+  public MongoModelServiceBuilder<ModelType, Reader> readerFactory(@NotNull Function<Document, Reader> readerFactory) {
     this.readerFactory = readerFactory;
     return this;
   }
 
   @Contract("_ -> this")
-  public MongoModelServiceBuilder<T, Reader> collection(@NotNull String collection) {
+  public MongoModelServiceBuilder<ModelType, Reader> collection(@NotNull String collection) {
     this.collectionName = collection;
     return this;
   }
 
   @Override
-  public ModelService<T> build() {
+  public ModelService<ModelType> build() {
     check();
     MongoCollection<Document> collection =
       database.getCollection(collectionName);
 
-    MongoModelService<T, Reader> modelService =
+    MongoModelService<ModelType, Reader> modelService =
       new MongoModelService<>(executor, collection, readerFactory, modelWriter, modelReader);
 
     if (cacheModelService == null) {
@@ -77,7 +77,7 @@ public class MongoModelServiceBuilder<T extends Model, Reader extends ModelReade
   }
 
   @Override
-  protected MongoModelServiceBuilder<T, Reader> back() {
+  protected MongoModelServiceBuilder<ModelType, Reader> back() {
     return this;
   }
 }

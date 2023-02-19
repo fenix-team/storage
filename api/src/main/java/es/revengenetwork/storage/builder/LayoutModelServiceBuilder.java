@@ -8,25 +8,25 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public abstract class LayoutModelServiceBuilder
-  <T extends Model, O extends ModelServiceBuilder<T>>
-  implements ModelServiceBuilder<T> {
+  <ModelType extends Model, Builder extends ModelServiceBuilder<ModelType>>
+  implements ModelServiceBuilder<ModelType> {
 
-  protected final Class<T> type;
+  protected final Class<ModelType> type;
   protected Executor executor;
-  protected ModelService<T> cacheModelService;
+  protected ModelService<ModelType> cacheModelService;
 
-  public LayoutModelServiceBuilder(@NotNull Class<T> type) {
+  public LayoutModelServiceBuilder(@NotNull Class<ModelType> type) {
     this.type = type;
   }
 
   @Override
-  public O executor(@NotNull Executor executor) {
+  public Builder executor(@NotNull Executor executor) {
     this.executor = executor;
     return back();
   }
 
   @Override
-  public O cachedService(@NotNull ModelService<T> cachedService) {
+  public Builder cachedService(@NotNull ModelService<ModelType> cachedService) {
     this.cacheModelService = cachedService;
     return back();
   }
@@ -37,5 +37,5 @@ public abstract class LayoutModelServiceBuilder
     }
   }
 
-  protected abstract O back();
+  protected abstract Builder back();
 }

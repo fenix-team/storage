@@ -11,8 +11,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-public abstract class AbstractAsyncModelService<T extends Model>
-  implements ModelService<T>, AsyncModelService<T> {
+public abstract class AbstractAsyncModelService<ModelType extends Model>
+  implements ModelService<ModelType>, AsyncModelService<ModelType> {
 
   protected final Executor executor;
 
@@ -21,12 +21,12 @@ public abstract class AbstractAsyncModelService<T extends Model>
   }
 
   @Override
-  public @NotNull CompletableFuture<@Nullable T> find(@NotNull String id) {
+  public @NotNull CompletableFuture<@Nullable ModelType> find(@NotNull String id) {
     return CompletableFuture.supplyAsync(() -> findSync(id), executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<@Nullable List<T>> find(
+  public @NotNull CompletableFuture<@Nullable List<ModelType>> find(
     @NotNull String field,
     @NotNull String value
   ) {
@@ -34,22 +34,22 @@ public abstract class AbstractAsyncModelService<T extends Model>
   }
 
   @Override
-  public @NotNull CompletableFuture<@Nullable List<T>> findAll() {
+  public @NotNull CompletableFuture<@Nullable List<ModelType>> findAll() {
     return CompletableFuture.supplyAsync(this::findAllSync, executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<@Nullable List<T>> findAll(@NotNull Consumer<T> postLoadAction) {
+  public @NotNull CompletableFuture<@Nullable List<ModelType>> findAll(@NotNull Consumer<ModelType> postLoadAction) {
     return CompletableFuture.supplyAsync(() -> findAllSync(postLoadAction), executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> save(@NotNull T model) {
+  public @NotNull CompletableFuture<Void> save(@NotNull ModelType model) {
     return CompletableFuture.runAsync(() -> saveSync(model), executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> delete(@NotNull T model) {
+  public @NotNull CompletableFuture<Void> delete(@NotNull ModelType model) {
     return CompletableFuture.runAsync(() -> deleteSync(model), executor);
   }
 

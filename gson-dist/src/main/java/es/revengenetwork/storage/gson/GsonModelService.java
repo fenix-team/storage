@@ -17,20 +17,20 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-public class GsonModelService<T extends Model>
-  extends RemoteModelService<T> {
+public class GsonModelService<ModelType extends Model>
+  extends RemoteModelService<ModelType> {
 
   public static <T extends Model> GsonModelServiceBuilder<T> builder(Class<T> type) {
     return new GsonModelServiceBuilder<>(type);
   }
 
   private final Gson gson;
-  private final Class<T> type;
+  private final Class<ModelType> type;
   private final File folder;
 
   protected GsonModelService(
     @NotNull Executor executor, @NotNull Gson gson,
-    @NotNull Class<T> type, @NotNull File folder
+    @NotNull Class<ModelType> type, @NotNull File folder
   ) {
     super(executor);
     this.gson = gson;
@@ -39,12 +39,12 @@ public class GsonModelService<T extends Model>
   }
 
   @Override
-  public @Nullable T findSync(@NotNull String id) {
+  public @Nullable ModelType findSync(@NotNull String id) {
     return internalFind(getFile(id));
   }
 
   @Override
-  public List<T> findSync(@NotNull String field, @NotNull String value) {
+  public List<ModelType> findSync(@NotNull String field, @NotNull String value) {
     if (!field.equals(ModelService.ID_FIELD)) {
       throw new IllegalArgumentException(
         "Only ID field is supported for sync find"
@@ -55,17 +55,17 @@ public class GsonModelService<T extends Model>
   }
 
   @Override
-  public List<T> findAllSync(@NotNull Consumer<T> postLoadAction) {
+  public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
     File[] listFiles = folder.listFiles();
 
     if (listFiles == null) {
       return Collections.emptyList();
     }
 
-    List<T> models = new ArrayList<>();
+    List<ModelType> models = new ArrayList<>();
 
     for (File file : listFiles) {
-      T model = internalFind(file);
+      ModelType model = internalFind(file);
 
       if (model == null) {
         continue;
@@ -79,7 +79,7 @@ public class GsonModelService<T extends Model>
   }
 
   @Override
-  public void saveSync(@NotNull T model) {
+  public void saveSync(@NotNull ModelType model) {
     File file = getFile(model.getId());
 
     boolean write;
@@ -112,7 +112,7 @@ public class GsonModelService<T extends Model>
     return new File(folder, id + ".json");
   }
 
-  private T internalFind(File file) {
+  private ModelType internalFind(File file) {
     if (!file.exists()) {
       return null;
     }

@@ -8,27 +8,27 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-public class DelegatedCachedModelService<T extends Model>
-  extends CachedRemoteModelService<T> {
+public class DelegatedCachedModelService<ModelType extends Model>
+  extends CachedRemoteModelService<ModelType> {
 
-  protected final ModelService<T> delegate;
+  protected final ModelService<ModelType> delegate;
 
   public DelegatedCachedModelService(
     @NotNull Executor executor,
-    @NotNull ModelService<T> cacheModelService,
-    @NotNull ModelService<T> delegate
+    @NotNull ModelService<ModelType> cacheModelService,
+    @NotNull ModelService<ModelType> delegate
   ) {
     super(executor, cacheModelService);
     this.delegate = delegate;
   }
 
   @Override
-  public List<T> findSync(@NotNull String field, @NotNull String value) {
+  public List<ModelType> findSync(@NotNull String field, @NotNull String value) {
     return delegate.findSync(field, value);
   }
 
   @Override
-  protected void internalSave(@NotNull T model) {
+  protected void internalSave(@NotNull ModelType model) {
     delegate.saveSync(model);
   }
 
@@ -38,12 +38,12 @@ public class DelegatedCachedModelService<T extends Model>
   }
 
   @Override
-  protected @Nullable T internalFind(@NotNull String id) {
+  protected @Nullable ModelType internalFind(@NotNull String id) {
     return delegate.findSync(id);
   }
 
   @Override
-  protected List<T> internalFindAll() {
+  protected List<ModelType> internalFindAll() {
     return delegate.findAllSync();
   }
 }

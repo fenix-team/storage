@@ -11,46 +11,46 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-public abstract class AbstractCachedAsyncModelService<T extends Model>
-  extends AbstractAsyncModelService<T>
-  implements CachedModelService<T>, CachedAsyncModelService<T> {
+public abstract class AbstractCachedAsyncModelService<ModelType extends Model>
+  extends AbstractAsyncModelService<ModelType>
+  implements CachedModelService<ModelType>, CachedAsyncModelService<ModelType> {
 
   public AbstractCachedAsyncModelService(@NotNull Executor executor) {
     super(executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<@Nullable T> get(@NotNull String id) {
+  public @NotNull CompletableFuture<@Nullable ModelType> get(@NotNull String id) {
     return CompletableFuture.supplyAsync(() -> getSync(id), executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<@Nullable T> getOrFind(@NotNull String id) {
+  public @NotNull CompletableFuture<@Nullable ModelType> getOrFind(@NotNull String id) {
     return CompletableFuture.supplyAsync(() -> getOrFindSync(id), executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<@Nullable List<T>> getAll() {
+  public @NotNull CompletableFuture<@Nullable List<ModelType>> getAll() {
     return CompletableFuture.supplyAsync(this::getAllSync, executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> upload(@NotNull T model) {
+  public @NotNull CompletableFuture<Void> upload(@NotNull ModelType model) {
     return CompletableFuture.runAsync(() -> uploadSync(model), executor);
   }
 
   @Override
   public @NotNull CompletableFuture<Void> uploadAll() {
-    return uploadAll(t -> { });
+    return uploadAll(modelType -> { });
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> uploadAll(@NotNull Consumer<T> preUploadAction) {
+  public @NotNull CompletableFuture<Void> uploadAll(@NotNull Consumer<ModelType> preUploadAction) {
     return CompletableFuture.runAsync(() -> uploadAllSync(preUploadAction), executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> saveInCache(@NotNull final T model) {
+  public @NotNull CompletableFuture<Void> saveInCache(@NotNull final ModelType model) {
     return CompletableFuture.runAsync(() -> saveInCacheSync(model), executor);
   }
 
@@ -61,11 +61,11 @@ public abstract class AbstractCachedAsyncModelService<T extends Model>
 
   @Override
   public @NotNull CompletableFuture<Void> saveAll() {
-    return saveAll(t -> { });
+    return saveAll(modelType -> { });
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> saveAll(@NotNull Consumer<T> preSaveAction) {
+  public @NotNull CompletableFuture<Void> saveAll(@NotNull Consumer<ModelType> preSaveAction) {
     return CompletableFuture.runAsync(() -> saveAllSync(preSaveAction), executor);
   }
 }

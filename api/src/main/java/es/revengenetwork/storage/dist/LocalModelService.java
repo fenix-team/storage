@@ -13,37 +13,37 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-public class LocalModelService<T extends Model>
-  implements ModelService<T> {
+public class LocalModelService<ModelType extends Model>
+  implements ModelService<ModelType> {
 
-  private final Map<String, T> cache;
+  private final Map<String, ModelType> cache;
 
-  private LocalModelService(@NotNull Map<String, T> cache) {
+  private LocalModelService(@NotNull Map<String, ModelType> cache) {
     this.cache = cache;
   }
 
   @Override
-  public @Nullable T findSync(@NotNull String id) {
+  public @Nullable ModelType findSync(@NotNull String id) {
     return cache.get(id);
   }
 
   @Override
-  public List<T> findSync(@NotNull String field, @NotNull String value) {
+  public List<ModelType> findSync(@NotNull String field, @NotNull String value) {
     return Collections.singletonList(findSync(value));
   }
 
   @Override
-  public List<T> findAllSync(@NotNull Consumer<T> postLoadAction) {
+  public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
     return new ArrayList<>(cache.values());
   }
 
   @Override
-  public void saveSync(@NotNull T model) {
+  public void saveSync(@NotNull ModelType model) {
     cache.put(model.getId(), model);
   }
 
   @Override
-  public void deleteSync(@NotNull T model) {
+  public void deleteSync(@NotNull ModelType model) {
     cache.remove(model.getId());
   }
 

@@ -18,22 +18,22 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class MongoModelService<T extends Model, Reader extends ModelReader<Reader, Document>>
-  extends RemoteModelService<T> {
+public class MongoModelService<ModelType extends Model, Reader extends ModelReader<Reader, Document>>
+  extends RemoteModelService<ModelType> {
 
   public static final String ID_FIELD = "_id";
 
   private final MongoCollection<Document> mongoCollection;
   private final Function<Document, Reader> readerFactory;
-  private final ModelCodec.Writer<T, Document> writer;
-  private final ModelCodec.Reader<T, Document, Reader> modelReader;
+  private final ModelCodec.Writer<ModelType, Document> writer;
+  private final ModelCodec.Reader<ModelType, Document, Reader> modelReader;
 
   protected MongoModelService(
     @NotNull Executor executor,
     @NotNull MongoCollection<Document> mongoCollection,
     @NotNull Function<Document, Reader> readerFactory,
-    @NotNull ModelCodec.Writer<T, Document> writer,
-    @NotNull ModelCodec.Reader<T, Document, Reader> modelReader
+    @NotNull ModelCodec.Writer<ModelType, Document> writer,
+    @NotNull ModelCodec.Reader<ModelType, Document, Reader> modelReader
   ) {
     super(executor);
 
@@ -53,7 +53,7 @@ public class MongoModelService<T extends Model, Reader extends ModelReader<Reade
   }
 
   @Override
-  public @Nullable T findSync(@NotNull String id) {
+  public @Nullable ModelType findSync(@NotNull String id) {
     Document document = mongoCollection
                           .find(Filters.eq(ID_FIELD, id))
                           .first();
@@ -66,8 +66,8 @@ public class MongoModelService<T extends Model, Reader extends ModelReader<Reade
   }
 
   @Override
-  public List<T> findSync(@NotNull String field, @NotNull String value) {
-    List<T> models = new ArrayList<>();
+  public List<ModelType> findSync(@NotNull String field, @NotNull String value) {
+    List<ModelType> models = new ArrayList<>();
 
     for (Document document : mongoCollection
                                .find(Filters.eq(field, value))) {
@@ -78,14 +78,14 @@ public class MongoModelService<T extends Model, Reader extends ModelReader<Reade
   }
 
   @Override
-  public List<T> findAllSync(@NotNull Consumer<T> postLoadAction) {
+  public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
     List<Document> documents = mongoCollection.find()
                                  .into(new ArrayList<>());
 
-    List<T> models = new ArrayList<>();
+    List<ModelType> models = new ArrayList<>();
 
     for (Document document : documents) {
-      T model = modelReader.deserialize(readerFactory.apply(document));
+      ModelType model = modelReader.deserialize(readerFactory.apply(document));
       postLoadAction.accept(model);
       models.add(model);
     }
@@ -94,7 +94,7 @@ public class MongoModelService<T extends Model, Reader extends ModelReader<Reade
   }
 
   @Override
-  public void saveSync(@NotNull T model) {
+  public void saveSync(@NotNull ModelType model) {
     mongoCollection.replaceOne(
       Filters.eq(ID_FIELD, model.getId()),
       writer.serialize(model),

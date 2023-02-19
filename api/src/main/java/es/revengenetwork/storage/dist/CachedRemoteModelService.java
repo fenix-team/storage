@@ -9,22 +9,22 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-public abstract class CachedRemoteModelService<T extends Model>
-  extends AbstractCachedAsyncModelService<T> {
+public abstract class CachedRemoteModelService<ModelType extends Model>
+  extends AbstractCachedAsyncModelService<ModelType> {
 
-  protected final ModelService<T> cacheModelService;
+  protected final ModelService<ModelType> cacheModelService;
 
   public CachedRemoteModelService(
     @NotNull Executor executor,
-    @NotNull ModelService<T> cacheModelService
+    @NotNull ModelService<ModelType> cacheModelService
   ) {
     super(executor);
     this.cacheModelService = cacheModelService;
   }
 
   @Override
-  public @Nullable T findSync(@NotNull String id) {
-    T model = internalFind(id);
+  public @Nullable ModelType findSync(@NotNull String id) {
+    ModelType model = internalFind(id);
 
     if (model != null) {
       // add to cache
@@ -35,13 +35,13 @@ public abstract class CachedRemoteModelService<T extends Model>
   }
 
   @Override
-  public @Nullable T getSync(@NotNull String id) {
+  public @Nullable ModelType getSync(@NotNull String id) {
     return cacheModelService.findSync(id);
   }
 
   @Override
-  public @Nullable T getOrFindSync(@NotNull String id) {
-    T model = getSync(id);
+  public @Nullable ModelType getOrFindSync(@NotNull String id) {
+    ModelType model = getSync(id);
 
     if (model != null) {
       return model;
@@ -51,15 +51,15 @@ public abstract class CachedRemoteModelService<T extends Model>
   }
 
   @Override
-  public List<T> getAllSync() {
+  public List<ModelType> getAllSync() {
     return cacheModelService.findAllSync();
   }
 
   @Override
-  public List<T> findAllSync(@NotNull Consumer<T> postLoadAction) {
-    List<T> loadedModels = internalFindAll();
+  public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
+    List<ModelType> loadedModels = internalFindAll();
 
-    for (T model : loadedModels) {
+    for (ModelType model : loadedModels) {
       postLoadAction.accept(model);
       cacheModelService.saveSync(model);
     }
@@ -68,40 +68,40 @@ public abstract class CachedRemoteModelService<T extends Model>
   }
 
   @Override
-  public void saveAllSync(@NotNull Consumer<T> preSaveAction) {
-    List<T> models = getAllSync();
+  public void saveAllSync(@NotNull Consumer<ModelType> preSaveAction) {
+    List<ModelType> models = getAllSync();
 
     if (models == null) {
       return;
     }
 
-    for (T model : models) {
+    for (ModelType model : models) {
       preSaveAction.accept(model);
       internalSave(model);
     }
   }
 
   @Override
-  public void saveSync(@NotNull T model) {
+  public void saveSync(@NotNull ModelType model) {
     saveInCacheSync(model);
     internalSave(model);
   }
 
   @Override
-  public void uploadSync(@NotNull T model) {
+  public void uploadSync(@NotNull ModelType model) {
     deleteInCacheSync(model.getId());
     internalSave(model);
   }
 
   @Override
-  public void uploadAllSync(@NotNull Consumer<T> preUploadAction) {
-    List<T> models = cacheModelService.findAllSync();
+  public void uploadAllSync(@NotNull Consumer<ModelType> preUploadAction) {
+    List<ModelType> models = cacheModelService.findAllSync();
 
     if (models == null) {
       return;
     }
 
-    for (T model : models) {
+    for (ModelType model : models) {
       preUploadAction.accept(model);
       uploadSync(model);
     }
@@ -113,7 +113,7 @@ public abstract class CachedRemoteModelService<T extends Model>
   }
 
   @Override
-  public void saveInCacheSync(@NotNull T model) {
+  public void saveInCacheSync(@NotNull ModelType model) {
     cacheModelService.saveSync(model);
   }
 
@@ -122,11 +122,11 @@ public abstract class CachedRemoteModelService<T extends Model>
     return cacheModelService.deleteSync(id);
   }
 
-  protected abstract void internalSave(T model);
+  protected abstract void internalSave(ModelType model);
 
   protected abstract boolean internalDelete(String id);
 
-  protected abstract @Nullable T internalFind(String id);
+  protected abstract @Nullable ModelType internalFind(String id);
 
-  protected abstract List<T> internalFindAll();
+  protected abstract List<ModelType> internalFindAll();
 }
