@@ -8,6 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -82,8 +85,8 @@ public class GsonModelService<ModelType extends Model>
       throw new RuntimeException(e);
     }
 
-    try {
-      this.gson.toJson(model, this.modelType, Files.newBufferedWriter(modelPath));
+    try (Writer writer = Files.newBufferedWriter(modelPath, StandardCharsets.UTF_8)) {
+      this.gson.toJson(model, this.modelType, writer);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -107,8 +110,8 @@ public class GsonModelService<ModelType extends Model>
       return null;
     }
 
-    try {
-      return this.gson.fromJson(Files.newBufferedReader(file), this.modelType);
+    try (Reader reader = Files.newBufferedReader(file)) {
+      return this.gson.fromJson(reader, this.modelType);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
