@@ -7,15 +7,16 @@ import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class GsonModelService<ModelType extends Model>
   extends RemoteModelService<ModelType> {
@@ -25,30 +26,30 @@ public class GsonModelService<ModelType extends Model>
   }
 
   private final Gson gson;
-  private final Class<ModelType> type;
-  private final File folder;
+  private final Class<ModelType> modelType;
+  private final Path folderPath;
 
   protected GsonModelService(
-    @NotNull Executor executor, @NotNull Gson gson,
-    @NotNull Class<ModelType> type, @NotNull File folder
+    @NotNull Executor executor,
+    @NotNull Gson gson,
+    @NotNull Class<ModelType> modelType,
+    @NotNull Path folderPath
   ) {
     super(executor);
     this.gson = gson;
-    this.type = type;
-    this.folder = folder;
+    this.modelType = modelType;
+    this.folderPath = folderPath;
   }
 
   @Override
   public @Nullable ModelType findSync(@NotNull String id) {
-    return internalFind(getFile(id));
+    return internalFind(resolveChild(id));
   }
 
   @Override
   public List<ModelType> findSync(@NotNull String field, @NotNull String value) {
     if (!field.equals(ModelService.ID_FIELD)) {
-      throw new IllegalArgumentException(
-        "Only ID field is supported for sync find"
-      );
+      throw new IllegalArgumentException("Only ID field is supported for sync find");
     }
 
     return Collections.singletonList(findSync(value));
@@ -56,69 +57,58 @@ public class GsonModelService<ModelType extends Model>
 
   @Override
   public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
-    File[] listFiles = folder.listFiles();
-
-    if (listFiles == null) {
-      return Collections.emptyList();
+    try (Stream<Path> walk = Files.walk(this.folderPath)) {
+      return walk.filter(Files::isRegularFile)
+               .map(this::internalFind)
+               .filter(Objects::nonNull)
+               .collect(ArrayList::new, (list, model) -> {
+                 postLoadAction.accept(model);
+                 list.add(model);
+               }, ArrayList::addAll);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
-
-    List<ModelType> models = new ArrayList<>();
-
-    for (File file : listFiles) {
-      ModelType model = internalFind(file);
-
-      if (model == null) {
-        continue;
-      }
-
-      postLoadAction.accept(model);
-      models.add(model);
-    }
-
-    return models;
   }
 
   @Override
   public void saveSync(@NotNull ModelType model) {
-    File file = getFile(model.getId());
+    final Path modelPath = resolveChild(model.getId());
 
-    boolean write;
-
-    if (!file.exists()) {
-      try {
-        write = file.createNewFile();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+    try {
+      if (Files.notExists(modelPath)) {
+        Files.createFile(modelPath);
       }
-    } else {
-      write = true;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
 
-    if (write) {
-      try (FileWriter writer = new FileWriter(file)) {
-        writer.write(gson.toJson(model, type));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+    try {
+      this.gson.toJson(model, this.modelType, Files.newBufferedWriter(modelPath));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
   @Override
   public boolean deleteSync(@NotNull String id) {
-    return getFile(id).delete();
+    try {
+      return Files.deleteIfExists(this.resolveChild(id));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  private File getFile(String id) {
-    return new File(folder, id + ".json");
+  private @NotNull Path resolveChild(String id) {
+    return this.folderPath.resolve(id + ".json");
   }
 
-  private ModelType internalFind(File file) {
-    if (!file.exists()) {
+  private @Nullable ModelType internalFind(final @NotNull Path file) {
+    if (Files.notExists(file)) {
       return null;
     }
 
-    try (FileReader reader = new FileReader(file)) {
-      return gson.fromJson(reader, type);
+    try {
+      return this.gson.fromJson(Files.newBufferedReader(file), this.modelType);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

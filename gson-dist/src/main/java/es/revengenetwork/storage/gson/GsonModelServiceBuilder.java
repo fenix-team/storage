@@ -8,13 +8,15 @@ import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class GsonModelServiceBuilder<ModelType extends Model>
   extends LayoutModelServiceBuilder<ModelType, GsonModelServiceBuilder<ModelType>> {
 
   private Gson gson;
-  private File folder;
+  private Path folderPath;
 
   protected GsonModelServiceBuilder(@NotNull Class<ModelType> type) {
     super(type);
@@ -27,8 +29,8 @@ public class GsonModelServiceBuilder<ModelType extends Model>
   }
 
   @Contract("_ -> this")
-  public GsonModelServiceBuilder<ModelType> folder(@NotNull File folder) {
-    this.folder = folder;
+  public GsonModelServiceBuilder<ModelType> folder(@NotNull Path folderPath) {
+    this.folderPath = folderPath;
     return back();
   }
 
@@ -41,14 +43,15 @@ public class GsonModelServiceBuilder<ModelType extends Model>
   public ModelService<ModelType> build() {
     check();
 
-    if (!folder.exists()) {
-      folder.mkdirs();
+    if (Files.notExists(this.folderPath)) {
+      try {
+        Files.createFile(this.folderPath);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
 
-    ModelService<ModelType> modelService = new GsonModelService<>(
-      executor, gson,
-      type, folder
-    );
+    ModelService<ModelType> modelService = new GsonModelService<>(executor, gson, type, folderPath);
 
     if (cacheModelService == null) {
       return modelService;
