@@ -45,7 +45,7 @@ public class GsonModelServiceBuilder<ModelType extends Model>
 
     if (Files.notExists(this.folderPath)) {
       try {
-        Files.createFile(this.folderPath);
+        Files.createDirectory(this.folderPath);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
