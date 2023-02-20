@@ -48,13 +48,16 @@ public abstract class CachedRemoteModelService<ModelType extends Model>
     ModelType model = this.getSync(id);
 
     if (model != null) {
-      model = this.findSync(id);
-
-      if (model != null) {
-        this.cacheModelService.saveSync(model);
-      }
+      return model;
     }
 
+    model = this.findSync(id);
+
+    if (model == null) {
+      return null;
+    }
+
+    this.cacheModelService.saveSync(model);
     return model;
   }
 
