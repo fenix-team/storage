@@ -5,6 +5,7 @@ import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -25,6 +26,16 @@ public class DelegatedCachedModelService<ModelType extends Model>
   @Override
   public List<ModelType> findSync(@NotNull String field, @NotNull String value) {
     return delegate.findSync(field, value);
+  }
+
+  @Override
+  public @Nullable Collection<String> findIdsSync() {
+    return delegate.findIdsSync();
+  }
+
+  @Override
+  public boolean existsSync(@NotNull final String id) {
+    return delegate.existsSync(id);
   }
 
   @Override

@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -59,6 +60,19 @@ public class GsonModelService<ModelType extends Model>
   }
 
   @Override
+  public @Nullable Collection<String> findIdsSync() {
+    try (Stream<Path> walk = Files.walk(this.folderPath)) {
+      return walk.filter(Files::isRegularFile)
+               .map(Path::getFileName)
+               .map(Path::toString)
+               .map(fileName -> fileName.substring(0, fileName.length() - 5))
+               .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
   public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
     try (Stream<Path> walk = Files.walk(this.folderPath)) {
       return walk.filter(Files::isRegularFile)
@@ -71,6 +85,11 @@ public class GsonModelService<ModelType extends Model>
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public boolean existsSync(@NotNull final String id) {
+    return Files.exists(this.resolveChild(id));
   }
 
   @Override

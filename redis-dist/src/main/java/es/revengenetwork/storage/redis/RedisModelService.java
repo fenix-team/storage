@@ -108,6 +108,25 @@ public class RedisModelService<ModelType extends Model, Reader extends ModelRead
   }
 
   @Override
+  public @Nullable Collection<String> findIdsSync() {
+    try (Jedis jedis = jedisPool.getResource()) {
+      Set<String> keys = jedis.keys(tableName + ":*");
+
+      if (keys == null || keys.isEmpty()) {
+        return Collections.emptyList();
+      }
+
+      List<String> result = new ArrayList<>(keys.size());
+
+      for (String key : keys) {
+        result.add(key.substring(tableName.length() + 1));
+      }
+
+      return result;
+    }
+  }
+
+  @Override
   public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
     try (Jedis jedis = jedisPool.getResource()) {
       Set<String> keys = jedis.keys(tableName + ":*");
@@ -130,6 +149,13 @@ public class RedisModelService<ModelType extends Model, Reader extends ModelRead
       }
 
       return result;
+    }
+  }
+
+  @Override
+  public boolean existsSync(@NotNull final String id) {
+    try (Jedis jedis = jedisPool.getResource()) {
+      return jedis.exists(tableName + ":" + id);
     }
   }
 

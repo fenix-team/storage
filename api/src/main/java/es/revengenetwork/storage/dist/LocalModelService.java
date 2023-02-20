@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -33,8 +34,18 @@ public class LocalModelService<ModelType extends Model>
   }
 
   @Override
+  public @Nullable Collection<String> findIdsSync() {
+    return cache.keySet();
+  }
+
+  @Override
   public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
     return new ArrayList<>(cache.values());
+  }
+
+  @Override
+  public boolean existsSync(@NotNull final String id) {
+    return cache.containsKey(id);
   }
 
   @Override

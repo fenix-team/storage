@@ -6,6 +6,7 @@ import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -34,6 +35,11 @@ public abstract class AbstractAsyncModelService<ModelType extends Model>
   }
 
   @Override
+  public @NotNull CompletableFuture<@Nullable Collection<String>> findIds() {
+    return CompletableFuture.supplyAsync(this::findIdsSync, executor);
+  }
+
+  @Override
   public @NotNull CompletableFuture<@Nullable List<ModelType>> findAll() {
     return CompletableFuture.supplyAsync(this::findAllSync, executor);
   }
@@ -41,6 +47,11 @@ public abstract class AbstractAsyncModelService<ModelType extends Model>
   @Override
   public @NotNull CompletableFuture<@Nullable List<ModelType>> findAll(@NotNull Consumer<ModelType> postLoadAction) {
     return CompletableFuture.supplyAsync(() -> findAllSync(postLoadAction), executor);
+  }
+
+  @Override
+  public @NotNull CompletableFuture<@NotNull Boolean> exists(@NotNull final String id) {
+    return CompletableFuture.supplyAsync(() -> existsSync(id), executor);
   }
 
   @Override

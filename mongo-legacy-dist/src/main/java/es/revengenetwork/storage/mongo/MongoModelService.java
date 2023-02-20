@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -78,6 +79,17 @@ public class MongoModelService<ModelType extends Model, Reader extends ModelRead
   }
 
   @Override
+  public @Nullable Collection<String> findIdsSync() {
+    List<String> ids = new ArrayList<>();
+
+    for (Document document : mongoCollection.find()) {
+      ids.add(document.getString(ID_FIELD));
+    }
+
+    return ids;
+  }
+
+  @Override
   public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
     List<Document> documents = mongoCollection.find()
                                  .into(new ArrayList<>());
@@ -91,6 +103,11 @@ public class MongoModelService<ModelType extends Model, Reader extends ModelRead
     }
 
     return models;
+  }
+
+  @Override
+  public boolean existsSync(@NotNull final String id) {
+    return mongoCollection.find(Filters.eq(ID_FIELD, id)).first() != null;
   }
 
   @Override

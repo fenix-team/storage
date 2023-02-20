@@ -6,6 +6,7 @@ import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -34,12 +35,22 @@ public class CaffeineModelService<ModelType extends Model>
   }
 
   @Override
+  public @Nullable Collection<String> findIdsSync() {
+    return cache.asMap().keySet();
+  }
+
+  @Override
   public @Nullable List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
     return cache.asMap()
              .values()
              .stream()
              .peek(postLoadAction)
              .toList();
+  }
+
+  @Override
+  public boolean existsSync(@NotNull final String id) {
+    return cache.asMap().containsKey(id);
   }
 
   @Override
