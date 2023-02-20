@@ -30,6 +30,13 @@ public abstract class AbstractCachedAsyncModelService<ModelType extends Model>
   }
 
   @Override
+  public @NotNull CompletableFuture<@Nullable ModelType> getOrFindAndCache(
+    @NotNull final String id
+  ) {
+    return CompletableFuture.supplyAsync(() -> getOrFindAndCacheSync(id), executor);
+  }
+
+  @Override
   public @NotNull CompletableFuture<@Nullable List<ModelType>> getAll() {
     return CompletableFuture.supplyAsync(this::getAllSync, executor);
   }

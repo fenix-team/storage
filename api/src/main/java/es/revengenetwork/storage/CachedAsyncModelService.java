@@ -14,6 +14,8 @@ public interface CachedAsyncModelService<ModelType extends Model> {
 
   @NotNull CompletableFuture<@Nullable ModelType> getOrFind(@NotNull String id);
 
+  @NotNull CompletableFuture<@Nullable ModelType> getOrFindAndCache(@NotNull String id);
+
   @NotNull CompletableFuture<@Nullable List<ModelType>> getAll();
 
   @NotNull CompletableFuture<Void> upload(@NotNull ModelType model);

@@ -24,30 +24,38 @@ public abstract class CachedRemoteModelService<ModelType extends Model>
 
   @Override
   public @Nullable ModelType findSync(@NotNull String id) {
-    ModelType model = internalFind(id);
-
-    if (model != null) {
-      // add to cache
-      cacheModelService.saveSync(model);
-    }
-
-    return model;
+    return this.internalFind(id);
   }
 
   @Override
   public @Nullable ModelType getSync(@NotNull String id) {
-    return cacheModelService.findSync(id);
+    return this.cacheModelService.findSync(id);
   }
 
   @Override
   public @Nullable ModelType getOrFindSync(@NotNull String id) {
-    ModelType model = getSync(id);
+    ModelType model = this.getSync(id);
 
     if (model != null) {
       return model;
     }
 
-    return findSync(id);
+    return this.findSync(id);
+  }
+
+  @Override
+  public @Nullable ModelType getOrFindAndCacheSync(@NotNull final String id) {
+    ModelType model = this.getSync(id);
+
+    if (model != null) {
+      model = this.findSync(id);
+
+      if (model != null) {
+        this.cacheModelService.saveSync(model);
+      }
+    }
+
+    return model;
   }
 
   @Override

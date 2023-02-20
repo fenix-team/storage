@@ -14,6 +14,8 @@ public interface CachedModelService<ModelType extends Model>
 
   @Nullable ModelType getOrFindSync(@NotNull String id);
 
+  @Nullable ModelType getOrFindAndCacheSync(@NotNull String id);
+
   @Nullable List<ModelType> getAllSync();
 
   void uploadSync(@NotNull ModelType model);
