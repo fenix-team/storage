@@ -55,8 +55,18 @@ public abstract class AbstractCachedAsyncModelService<ModelType extends Model>
   }
 
   @Override
+  public @NotNull CompletableFuture<Void> saveInBoth(@NotNull final ModelType model) {
+    return CompletableFuture.runAsync(() -> saveInBothSync(model), executor);
+  }
+
+  @Override
   public @NotNull CompletableFuture<Void> deleteInCache(@NotNull final String id) {
     return CompletableFuture.runAsync(() -> deleteInCacheSync(id), executor);
+  }
+
+  @Override
+  public @NotNull CompletableFuture<Void> deleteInBoth(@NotNull final String id) {
+    return CompletableFuture.runAsync(() -> deleteInBothSync(id), executor);
   }
 
   @Override

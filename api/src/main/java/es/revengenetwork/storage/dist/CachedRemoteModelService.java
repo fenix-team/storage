@@ -82,12 +82,6 @@ public abstract class CachedRemoteModelService<ModelType extends Model>
   }
 
   @Override
-  public void saveSync(@NotNull ModelType model) {
-    saveInCacheSync(model);
-    internalSave(model);
-  }
-
-  @Override
   public void uploadSync(@NotNull ModelType model) {
     deleteInCacheSync(model.getId());
     internalSave(model);
@@ -109,7 +103,17 @@ public abstract class CachedRemoteModelService<ModelType extends Model>
 
   @Override
   public boolean deleteSync(@NotNull String id) {
-    return deleteInCacheSync(id) && internalDelete(id);
+    return internalDelete(id);
+  }
+
+  @Override
+  public boolean deleteInBothSync(@NotNull final String id) {
+    return deleteSync(id) && deleteInCacheSync(id);
+  }
+
+  @Override
+  public boolean deleteInCacheSync(@NotNull String id) {
+    return cacheModelService.deleteSync(id);
   }
 
   @Override
@@ -118,8 +122,14 @@ public abstract class CachedRemoteModelService<ModelType extends Model>
   }
 
   @Override
-  public boolean deleteInCacheSync(@NotNull String id) {
-    return cacheModelService.deleteSync(id);
+  public void saveInBothSync(@NotNull final ModelType model) {
+    saveSync(model);
+    saveInCacheSync(model);
+  }
+
+  @Override
+  public void saveSync(@NotNull ModelType model) {
+    internalSave(model);
   }
 
   protected abstract void internalSave(ModelType model);

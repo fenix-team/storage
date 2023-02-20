@@ -24,11 +24,15 @@ public interface CachedAsyncModelService<ModelType extends Model> {
 
   @NotNull CompletableFuture<Void> saveInCache(@NotNull ModelType model);
 
+  @NotNull CompletableFuture<Void> saveInBoth(@NotNull ModelType model);
+
   @NotNull CompletableFuture<Void> deleteInCache(@NotNull String id);
 
   default @NotNull CompletableFuture<Void> deleteInCache(@NotNull ModelType model) {
     return deleteInCache(model.getId());
   }
+
+  @NotNull CompletableFuture<Void> deleteInBoth(@NotNull String id);
 
   @NotNull CompletableFuture<Void> saveAll();
 
