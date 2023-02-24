@@ -1,8 +1,4 @@
-plugins {
-  id("storage.publishing-conventions")
-}
-
 dependencies {
   api(project(":storage-api-codec"))
-  compileOnly(libs.gson)
+  compileOnlyApi("com.google.code.gson:gson:2.9.0")
 }

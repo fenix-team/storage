@@ -1,8 +1,4 @@
-plugins {
-  id("storage.publishing-conventions")
-}
-
 dependencies {
   api(project(":storage-api-codec"))
-  api(libs.jedis)
+  api("redis.clients:jedis:4.3.1")
 }

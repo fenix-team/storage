@@ -1,8 +1,4 @@
-plugins {
-  id("storage.publishing-conventions")
-}
-
 dependencies {
   api(project(":storage-api-codec"))
-  api(libs.mongo.driver)
+  api("org.mongodb:mongodb-driver-sync:4.9.0")
 }
