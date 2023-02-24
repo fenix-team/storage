@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-public interface ModelService<ModelType extends Model> {
+public interface ModelRepository<ModelType extends Model> {
 
   String ID_FIELD = "id";
 

@@ -2,11 +2,11 @@ package es.revengenetwork.storage.redis;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import es.revengenetwork.storage.ModelService;
-import es.revengenetwork.storage.builder.LayoutModelServiceBuilder;
+import es.revengenetwork.storage.ModelRepository;
+import es.revengenetwork.storage.builder.LayoutModelRepositoryBuilder;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
-import es.revengenetwork.storage.dist.DelegatedCachedModelService;
+import es.revengenetwork.storage.dist.DelegatedCachedModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -14,9 +14,9 @@ import redis.clients.jedis.JedisPool;
 
 import java.util.function.Function;
 
-public class RedisModelServiceBuilder
+public class RedisModelRepositoryBuilder
   <ModelType extends Model, Reader extends ModelReader<Reader, JsonObject>>
-  extends LayoutModelServiceBuilder<ModelType, RedisModelServiceBuilder<ModelType, Reader>> {
+  extends LayoutModelRepositoryBuilder<ModelType, RedisModelRepositoryBuilder<ModelType, Reader>> {
 
   private Gson gson;
   private String tableName;
@@ -27,42 +27,42 @@ public class RedisModelServiceBuilder
   private ModelCodec.Writer<ModelType, JsonObject> writer;
   private ModelCodec.Reader<ModelType, JsonObject, Reader> reader;
 
-  protected RedisModelServiceBuilder(@NotNull Class<ModelType> type) {
+  protected RedisModelRepositoryBuilder(@NotNull Class<ModelType> type) {
     super(type);
   }
 
   @Contract("_ -> this")
-  public @NotNull RedisModelServiceBuilder<ModelType, Reader> gson(@NotNull Gson gson) {
+  public @NotNull RedisModelRepositoryBuilder<ModelType, Reader> gson(@NotNull Gson gson) {
     this.gson = gson;
     return back();
   }
 
   @Contract("_ -> this")
-  public @NotNull RedisModelServiceBuilder<ModelType, Reader> tableName(@NotNull String tableName) {
+  public @NotNull RedisModelRepositoryBuilder<ModelType, Reader> tableName(@NotNull String tableName) {
     this.tableName = tableName;
     return back();
   }
 
   @Contract("_ -> this")
-  public @NotNull RedisModelServiceBuilder<ModelType, Reader> expireAfterSave(int expireAfterSave) {
+  public @NotNull RedisModelRepositoryBuilder<ModelType, Reader> expireAfterSave(int expireAfterSave) {
     this.expireAfterSave = expireAfterSave;
     return back();
   }
 
   @Contract("_ -> this")
-  public @NotNull RedisModelServiceBuilder<ModelType, Reader> expireAfterAccess(int expireAfterAccess) {
+  public @NotNull RedisModelRepositoryBuilder<ModelType, Reader> expireAfterAccess(int expireAfterAccess) {
     this.expireAfterAccess = expireAfterAccess;
     return back();
   }
 
   @Contract("_ -> this")
-  public @NotNull RedisModelServiceBuilder<ModelType, Reader> jedisPool(@NotNull JedisPool jedisPool) {
+  public @NotNull RedisModelRepositoryBuilder<ModelType, Reader> jedisPool(@NotNull JedisPool jedisPool) {
     this.jedisPool = jedisPool;
     return back();
   }
 
   @Contract("_ -> this")
-  public RedisModelServiceBuilder<ModelType, Reader> modelReader(
+  public RedisModelRepositoryBuilder<ModelType, Reader> modelReader(
     @NotNull ModelCodec.Reader<ModelType, JsonObject
                                 , Reader> reader
   ) {
@@ -71,25 +71,25 @@ public class RedisModelServiceBuilder
   }
 
   @Contract("_ -> this")
-  public RedisModelServiceBuilder<ModelType, Reader> modelWriter(@NotNull ModelCodec.Writer<ModelType, JsonObject> writer) {
+  public RedisModelRepositoryBuilder<ModelType, Reader> modelWriter(@NotNull ModelCodec.Writer<ModelType, JsonObject> writer) {
     this.writer = writer;
     return back();
   }
 
   @Contract("_ -> this")
-  public RedisModelServiceBuilder<ModelType, Reader> readerFactory(@NotNull Function<JsonObject, Reader> readerFactory) {
+  public RedisModelRepositoryBuilder<ModelType, Reader> readerFactory(@NotNull Function<JsonObject, Reader> readerFactory) {
     this.readerFactory = readerFactory;
     return back();
   }
 
   @Contract(" -> this")
   @Override
-  protected @NotNull RedisModelServiceBuilder<ModelType, Reader> back() {
+  protected @NotNull RedisModelRepositoryBuilder<ModelType, Reader> back() {
     return this;
   }
 
   @Override
-  public ModelService<ModelType> build() {
+  public ModelRepository<ModelType> build() {
     check();
 
     if (expireAfterSave <= 0) {
@@ -100,14 +100,14 @@ public class RedisModelServiceBuilder
       expireAfterAccess = -1;
     }
 
-    ModelService<ModelType> modelService = new RedisModelService<>(
+    ModelRepository<ModelType> modelRepository = new RedisModelRepository<>(
       executor, gson, readerFactory, writer, reader, jedisPool,
       tableName, expireAfterSave, expireAfterAccess);
 
-    if (cacheModelService == null) {
-      return modelService;
+    if (cacheModelRepository == null) {
+      return modelRepository;
     } else {
-      return new DelegatedCachedModelService<>(executor, cacheModelService, modelService);
+      return new DelegatedCachedModelRepository<>(executor, cacheModelRepository, modelRepository);
     }
   }
 }

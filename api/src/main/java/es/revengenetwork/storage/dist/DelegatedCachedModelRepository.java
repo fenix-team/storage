@@ -1,6 +1,6 @@
 package es.revengenetwork.storage.dist;
 
-import es.revengenetwork.storage.ModelService;
+import es.revengenetwork.storage.ModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,17 +9,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-public class DelegatedCachedModelService<ModelType extends Model>
-  extends CachedRemoteModelService<ModelType> {
+public class DelegatedCachedModelRepository<ModelType extends Model>
+  extends CachedRemoteModelRepository<ModelType> {
 
-  protected final ModelService<ModelType> delegate;
+  protected final ModelRepository<ModelType> delegate;
 
-  public DelegatedCachedModelService(
+  public DelegatedCachedModelRepository(
     @NotNull Executor executor,
-    @NotNull ModelService<ModelType> cacheModelService,
-    @NotNull ModelService<ModelType> delegate
+    @NotNull ModelRepository<ModelType> cacheModelRepository,
+    @NotNull ModelRepository<ModelType> delegate
   ) {
-    super(executor, cacheModelService);
+    super(executor, cacheModelRepository);
     this.delegate = delegate;
   }
 

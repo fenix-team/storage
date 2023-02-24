@@ -1,7 +1,7 @@
 package es.revengenetwork.storage.dist;
 
-import es.revengenetwork.storage.AsyncModelService;
-import es.revengenetwork.storage.ModelService;
+import es.revengenetwork.storage.AsyncModelRepository;
+import es.revengenetwork.storage.ModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,12 +12,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-public abstract class AbstractAsyncModelService<ModelType extends Model>
-  implements ModelService<ModelType>, AsyncModelService<ModelType> {
+public abstract class AbstractAsyncModelRepository<ModelType extends Model>
+  implements ModelRepository<ModelType>, AsyncModelRepository<ModelType> {
 
   protected final Executor executor;
 
-  public AbstractAsyncModelService(@NotNull Executor executor) {
+  public AbstractAsyncModelRepository(@NotNull Executor executor) {
     this.executor = executor;
   }
 

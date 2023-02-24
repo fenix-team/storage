@@ -1,8 +1,8 @@
 package es.revengenetwork.storage.gson;
 
 import com.google.gson.Gson;
-import es.revengenetwork.storage.ModelService;
-import es.revengenetwork.storage.dist.RemoteModelService;
+import es.revengenetwork.storage.ModelRepository;
+import es.revengenetwork.storage.dist.RemoteModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,18 +22,18 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public class GsonModelService<ModelType extends Model>
-  extends RemoteModelService<ModelType> {
+public class GsonModelRepository<ModelType extends Model>
+  extends RemoteModelRepository<ModelType> {
 
-  public static <T extends Model> GsonModelServiceBuilder<T> builder(Class<T> type) {
-    return new GsonModelServiceBuilder<>(type);
+  public static <T extends Model> GsonModelRepositoryBuilder<T> builder(Class<T> type) {
+    return new GsonModelRepositoryBuilder<>(type);
   }
 
   private final Gson gson;
   private final Class<ModelType> modelType;
   private final Path folderPath;
 
-  protected GsonModelService(
+  protected GsonModelRepository(
     @NotNull Executor executor,
     @NotNull Gson gson,
     @NotNull Class<ModelType> modelType,
@@ -52,7 +52,7 @@ public class GsonModelService<ModelType extends Model>
 
   @Override
   public List<ModelType> findSync(@NotNull String field, @NotNull String value) {
-    if (!field.equals(ModelService.ID_FIELD)) {
+    if (!field.equals(ModelRepository.ID_FIELD)) {
       throw new IllegalArgumentException("Only ID field is supported for sync find");
     }
 

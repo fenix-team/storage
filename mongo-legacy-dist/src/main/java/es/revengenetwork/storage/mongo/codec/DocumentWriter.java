@@ -3,7 +3,7 @@ package es.revengenetwork.storage.mongo.codec;
 import es.revengenetwork.storage.codec.DelegateObjectModelWriter;
 import es.revengenetwork.storage.codec.ModelWriter;
 import es.revengenetwork.storage.model.Model;
-import es.revengenetwork.storage.mongo.MongoModelService;
+import es.revengenetwork.storage.mongo.MongoModelRepository;
 import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,7 @@ public class DocumentWriter
   }
 
   public static ModelWriter<DocumentWriter, Document> create(@NotNull Model model) {
-    return create().writeString(MongoModelService.ID_FIELD, model.getId());
+    return create().writeString(MongoModelRepository.ID_FIELD, model.getId());
   }
 
   /**

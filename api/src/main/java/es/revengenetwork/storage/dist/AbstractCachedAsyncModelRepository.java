@@ -1,7 +1,7 @@
 package es.revengenetwork.storage.dist;
 
-import es.revengenetwork.storage.CachedAsyncModelService;
-import es.revengenetwork.storage.CachedModelService;
+import es.revengenetwork.storage.CachedAsyncModelRepository;
+import es.revengenetwork.storage.CachedModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,11 +11,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-public abstract class AbstractCachedAsyncModelService<ModelType extends Model>
-  extends AbstractAsyncModelService<ModelType>
-  implements CachedModelService<ModelType>, CachedAsyncModelService<ModelType> {
+public abstract class AbstractCachedAsyncModelRepository<ModelType extends Model>
+  extends AbstractAsyncModelRepository<ModelType>
+  implements CachedModelRepository<ModelType>, CachedAsyncModelRepository<ModelType> {
 
-  public AbstractCachedAsyncModelService(@NotNull Executor executor) {
+  public AbstractCachedAsyncModelRepository(@NotNull Executor executor) {
     super(executor);
   }
 

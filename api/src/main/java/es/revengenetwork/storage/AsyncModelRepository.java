@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public interface AsyncModelService<ModelType extends Model> {
+public interface AsyncModelRepository<ModelType extends Model> {
 
   @NotNull CompletableFuture<@Nullable ModelType> find(@NotNull String id);
 

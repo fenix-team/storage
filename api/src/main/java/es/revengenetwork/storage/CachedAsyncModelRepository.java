@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public interface CachedAsyncModelService<ModelType extends Model> {
+public interface CachedAsyncModelRepository<ModelType extends Model> {
 
   @NotNull CompletableFuture<@Nullable ModelType> get(@NotNull String id);
 

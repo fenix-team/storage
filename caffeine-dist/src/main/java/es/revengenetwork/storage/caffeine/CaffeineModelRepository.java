@@ -1,7 +1,7 @@
 package es.revengenetwork.storage.caffeine;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import es.revengenetwork.storage.ModelService;
+import es.revengenetwork.storage.ModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,17 +11,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class CaffeineModelService<ModelType extends Model>
-  implements ModelService<ModelType> {
+public class CaffeineModelRepository<ModelType extends Model>
+  implements ModelRepository<ModelType> {
 
   private final Cache<String, ModelType> cache;
 
-  protected CaffeineModelService(Cache<String, ModelType> cache) {
+  protected CaffeineModelRepository(Cache<String, ModelType> cache) {
     this.cache = cache;
   }
 
-  public static <T extends Model> CaffeineModelService<T> create(Cache<String, T> cache) {
-    return new CaffeineModelService<>(cache);
+  public static <T extends Model> CaffeineModelRepository<T> create(Cache<String, T> cache) {
+    return new CaffeineModelRepository<>(cache);
   }
 
   @Override

@@ -5,7 +5,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
-import es.revengenetwork.storage.dist.RemoteModelService;
+import es.revengenetwork.storage.dist.RemoteModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.bson.Document;
 import org.jetbrains.annotations.Contract;
@@ -19,8 +19,8 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class MongoModelService<ModelType extends Model, Reader extends ModelReader<Reader, Document>>
-  extends RemoteModelService<ModelType> {
+public class MongoModelRepository<ModelType extends Model, Reader extends ModelReader<Reader, Document>>
+  extends RemoteModelRepository<ModelType> {
 
   public static final String ID_FIELD = "_id";
 
@@ -29,7 +29,7 @@ public class MongoModelService<ModelType extends Model, Reader extends ModelRead
   private final ModelCodec.Writer<ModelType, Document> writer;
   private final ModelCodec.Reader<ModelType, Document, Reader> modelReader;
 
-  protected MongoModelService(
+  protected MongoModelRepository(
     @NotNull Executor executor,
     @NotNull MongoCollection<Document> mongoCollection,
     @NotNull Function<Document, Reader> readerFactory,
@@ -46,11 +46,11 @@ public class MongoModelService<ModelType extends Model, Reader extends ModelRead
 
   @Contract(pure = true, value = "_, _ -> new")
   public static <T extends Model, Reader extends ModelReader<Reader, Document>>
-  @NotNull MongoModelServiceBuilder<T, Reader> builder(
+  @NotNull MongoModelRepositoryBuilder<T, Reader> builder(
     @NotNull Class<T> type,
     @NotNull Class<Reader> ignoredReaderType
   ) {
-    return new MongoModelServiceBuilder<>(type);
+    return new MongoModelRepositoryBuilder<>(type);
   }
 
   @Override

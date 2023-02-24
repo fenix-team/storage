@@ -3,10 +3,10 @@ package es.revengenetwork.storage.redis;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import es.revengenetwork.storage.ModelService;
+import es.revengenetwork.storage.ModelRepository;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
-import es.revengenetwork.storage.dist.RemoteModelService;
+import es.revengenetwork.storage.dist.RemoteModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -19,8 +19,8 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class RedisModelService<ModelType extends Model, Reader extends ModelReader<Reader, JsonObject>>
-  extends RemoteModelService<ModelType> {
+public class RedisModelRepository<ModelType extends Model, Reader extends ModelReader<Reader, JsonObject>>
+  extends RemoteModelRepository<ModelType> {
 
   private final Gson gson;
   private final Function<JsonObject, Reader> readerFactory;
@@ -31,7 +31,7 @@ public class RedisModelService<ModelType extends Model, Reader extends ModelRead
   private final int expireAfterSave;
   private final int expireAfterAccess;
 
-  protected RedisModelService(
+  protected RedisModelRepository(
     @NotNull Executor executor,
     @NotNull Gson gson,
     @NotNull Function<JsonObject, Reader> readerFactory,
@@ -55,11 +55,11 @@ public class RedisModelService<ModelType extends Model, Reader extends ModelRead
 
   @Contract(pure = true, value = "_, _ -> new")
   public static <T extends Model, Reader extends ModelReader<Reader, JsonObject>>
-  @NotNull RedisModelServiceBuilder<T, Reader> builder(
+  @NotNull RedisModelRepositoryBuilder<T, Reader> builder(
     @NotNull Class<T> type,
     @NotNull Class<Reader> ignoredReaderType
   ) {
-    return new RedisModelServiceBuilder<>(type);
+    return new RedisModelRepositoryBuilder<>(type);
   }
 
   @Override
@@ -98,7 +98,7 @@ public class RedisModelService<ModelType extends Model, Reader extends ModelRead
 
   @Override
   public List<ModelType> findSync(@NotNull String field, @NotNull String value) {
-    if (!field.equals(ModelService.ID_FIELD)) {
+    if (!field.equals(ModelRepository.ID_FIELD)) {
       throw new IllegalArgumentException(
         "Only ID field is supported for sync find"
       );

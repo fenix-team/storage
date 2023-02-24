@@ -1,6 +1,6 @@
 package es.revengenetwork.storage.dist;
 
-import es.revengenetwork.storage.ModelService;
+import es.revengenetwork.storage.ModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,12 +14,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-public class LocalModelService<ModelType extends Model>
-  implements ModelService<ModelType> {
+public class LocalModelRepository<ModelType extends Model>
+  implements ModelRepository<ModelType> {
 
   private final Map<String, ModelType> cache;
 
-  private LocalModelService(@NotNull Map<String, ModelType> cache) {
+  private LocalModelRepository(@NotNull Map<String, ModelType> cache) {
     this.cache = cache;
   }
 
@@ -63,15 +63,15 @@ public class LocalModelService<ModelType extends Model>
     return cache.remove(id) != null;
   }
 
-  public static <T extends Model> LocalModelService<T> hashMap() {
-    return new LocalModelService<>(new HashMap<>());
+  public static <T extends Model> LocalModelRepository<T> hashMap() {
+    return new LocalModelRepository<>(new HashMap<>());
   }
 
-  public static <T extends Model> LocalModelService<T> concurrent() {
-    return new LocalModelService<>(new ConcurrentHashMap<>());
+  public static <T extends Model> LocalModelRepository<T> concurrent() {
+    return new LocalModelRepository<>(new ConcurrentHashMap<>());
   }
 
-  public static <T extends Model> LocalModelService<T> create(Map<String, T> cache) {
-    return new LocalModelService<>(cache);
+  public static <T extends Model> LocalModelRepository<T> create(Map<String, T> cache) {
+    return new LocalModelRepository<>(cache);
   }
 }

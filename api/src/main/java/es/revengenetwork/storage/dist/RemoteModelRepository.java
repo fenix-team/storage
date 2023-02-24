@@ -5,10 +5,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Executor;
 
-public abstract class RemoteModelService<ModelType extends Model>
-  extends AbstractAsyncModelService<ModelType> {
+public abstract class RemoteModelRepository<ModelType extends Model>
+  extends AbstractAsyncModelRepository<ModelType> {
 
-  public RemoteModelService(@NotNull Executor executor) {
+  public RemoteModelRepository(@NotNull Executor executor) {
     super(executor);
   }
 }

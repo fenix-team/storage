@@ -1,6 +1,6 @@
 package es.revengenetwork.storage.dist;
 
-import es.revengenetwork.storage.ModelService;
+import es.revengenetwork.storage.ModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,17 +9,17 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-public abstract class CachedRemoteModelService<ModelType extends Model>
-  extends AbstractCachedAsyncModelService<ModelType> {
+public abstract class CachedRemoteModelRepository<ModelType extends Model>
+  extends AbstractCachedAsyncModelRepository<ModelType> {
 
-  protected final ModelService<ModelType> cacheModelService;
+  protected final ModelRepository<ModelType> cacheModelRepository;
 
-  public CachedRemoteModelService(
+  public CachedRemoteModelRepository(
     @NotNull Executor executor,
-    @NotNull ModelService<ModelType> cacheModelService
+    @NotNull ModelRepository<ModelType> cacheModelRepository
   ) {
     super(executor);
-    this.cacheModelService = cacheModelService;
+    this.cacheModelRepository = cacheModelRepository;
   }
 
   @Override
@@ -29,7 +29,7 @@ public abstract class CachedRemoteModelService<ModelType extends Model>
 
   @Override
   public @Nullable ModelType getSync(@NotNull String id) {
-    return this.cacheModelService.findSync(id);
+    return this.cacheModelRepository.findSync(id);
   }
 
   @Override
@@ -57,13 +57,13 @@ public abstract class CachedRemoteModelService<ModelType extends Model>
       return null;
     }
 
-    this.cacheModelService.saveSync(model);
+    this.cacheModelRepository.saveSync(model);
     return model;
   }
 
   @Override
   public List<ModelType> getAllSync() {
-    return cacheModelService.findAllSync();
+    return cacheModelRepository.findAllSync();
   }
 
   @Override
@@ -72,7 +72,7 @@ public abstract class CachedRemoteModelService<ModelType extends Model>
 
     for (ModelType model : loadedModels) {
       postLoadAction.accept(model);
-      cacheModelService.saveSync(model);
+      cacheModelRepository.saveSync(model);
     }
 
     return loadedModels;
@@ -100,7 +100,7 @@ public abstract class CachedRemoteModelService<ModelType extends Model>
 
   @Override
   public void uploadAllSync(@NotNull Consumer<ModelType> preUploadAction) {
-    List<ModelType> models = cacheModelService.findAllSync();
+    List<ModelType> models = cacheModelRepository.findAllSync();
 
     if (models == null) {
       return;
@@ -124,12 +124,12 @@ public abstract class CachedRemoteModelService<ModelType extends Model>
 
   @Override
   public boolean deleteInCacheSync(@NotNull String id) {
-    return cacheModelService.deleteSync(id);
+    return cacheModelRepository.deleteSync(id);
   }
 
   @Override
   public void saveInCacheSync(@NotNull ModelType model) {
-    cacheModelService.saveSync(model);
+    cacheModelRepository.saveSync(model);
   }
 
   @Override

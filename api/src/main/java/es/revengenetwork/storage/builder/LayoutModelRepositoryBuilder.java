@@ -1,21 +1,21 @@
 package es.revengenetwork.storage.builder;
 
-import es.revengenetwork.storage.ModelService;
+import es.revengenetwork.storage.ModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public abstract class LayoutModelServiceBuilder
-  <ModelType extends Model, Builder extends ModelServiceBuilder<ModelType>>
-  implements ModelServiceBuilder<ModelType> {
+public abstract class LayoutModelRepositoryBuilder
+  <ModelType extends Model, Builder extends ModelRepositoryBuilder<ModelType>>
+  implements ModelRepositoryBuilder<ModelType> {
 
   protected final Class<ModelType> type;
   protected Executor executor;
-  protected ModelService<ModelType> cacheModelService;
+  protected ModelRepository<ModelType> cacheModelRepository;
 
-  public LayoutModelServiceBuilder(@NotNull Class<ModelType> type) {
+  public LayoutModelRepositoryBuilder(@NotNull Class<ModelType> type) {
     this.type = type;
   }
 
@@ -26,8 +26,8 @@ public abstract class LayoutModelServiceBuilder
   }
 
   @Override
-  public Builder cachedService(@NotNull ModelService<ModelType> cachedService) {
-    this.cacheModelService = cachedService;
+  public Builder cachedService(@NotNull ModelRepository<ModelType> cachedService) {
+    this.cacheModelRepository = cachedService;
     return back();
   }
 

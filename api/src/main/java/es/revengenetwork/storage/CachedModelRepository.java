@@ -7,8 +7,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
-public interface CachedModelService<ModelType extends Model>
-  extends ModelService<ModelType> {
+public interface CachedModelRepository<ModelType extends Model>
+  extends ModelRepository<ModelType> {
 
   @Nullable ModelType getSync(@NotNull String id);
 
