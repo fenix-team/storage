@@ -28,7 +28,7 @@ public interface AsyncModelRepository<ModelType extends Model> {
 
   @NotNull CompletableFuture<Void> save(@NotNull ModelType model);
 
-  @NotNull CompletableFuture<Void> delete(@NotNull ModelType model);
+  @NotNull CompletableFuture<@NotNull Boolean> delete(@NotNull ModelType model);
 
   @NotNull CompletableFuture<@NotNull Boolean> delete(@NotNull String id);
 }

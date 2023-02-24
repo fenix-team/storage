@@ -60,8 +60,8 @@ public abstract class AbstractAsyncModelRepository<ModelType extends Model>
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> delete(@NotNull ModelType model) {
-    return CompletableFuture.runAsync(() -> deleteSync(model), executor);
+  public @NotNull CompletableFuture<@NotNull Boolean> delete(@NotNull ModelType model) {
+    return CompletableFuture.supplyAsync(() -> deleteSync(model), executor);
   }
 
   @Override

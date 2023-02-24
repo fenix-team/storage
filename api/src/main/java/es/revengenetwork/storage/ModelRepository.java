@@ -28,8 +28,8 @@ public interface ModelRepository<ModelType extends Model> {
 
   void saveSync(@NotNull ModelType model);
 
-  default void deleteSync(@NotNull ModelType model) {
-    deleteSync(model.getId());
+  default boolean deleteSync(@NotNull ModelType model) {
+    return deleteSync(model.getId());
   }
 
   boolean deleteSync(@NotNull String id);

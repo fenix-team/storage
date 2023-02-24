@@ -54,11 +54,6 @@ public class LocalModelRepository<ModelType extends Model>
   }
 
   @Override
-  public void deleteSync(@NotNull ModelType model) {
-    cache.remove(model.getId());
-  }
-
-  @Override
   public boolean deleteSync(@NotNull String id) {
     return cache.remove(id) != null;
   }
