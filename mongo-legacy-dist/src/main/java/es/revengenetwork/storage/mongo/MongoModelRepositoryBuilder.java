@@ -2,11 +2,11 @@ package es.revengenetwork.storage.mongo;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import es.revengenetwork.storage.ModelRepository;
-import es.revengenetwork.storage.builder.LayoutModelRepositoryBuilder;
+import es.revengenetwork.storage.repository.ModelRepository;
+import es.revengenetwork.storage.repository.builder.LayoutModelRepositoryBuilder;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
-import es.revengenetwork.storage.dist.DelegatedCachedModelRepository;
+import es.revengenetwork.storage.repository.CachedModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.bson.Document;
 import org.jetbrains.annotations.Contract;
@@ -72,7 +72,7 @@ public class MongoModelRepositoryBuilder<ModelType extends Model, Reader extends
     if (cacheModelRepository == null) {
       return modelService;
     } else {
-      return new DelegatedCachedModelRepository<>(executor, cacheModelRepository, modelService);
+      return new CachedModelRepository<>(executor, cacheModelRepository, modelService);
     }
   }
 

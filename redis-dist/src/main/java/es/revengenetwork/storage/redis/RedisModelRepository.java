@@ -3,24 +3,31 @@ package es.revengenetwork.storage.redis;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import es.revengenetwork.storage.ModelRepository;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
-import es.revengenetwork.storage.dist.RemoteModelRepository;
 import es.revengenetwork.storage.model.Model;
+import es.revengenetwork.storage.repository.AbstractAsyncModelRepository;
+import es.revengenetwork.storage.repository.ModelRepository;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class RedisModelRepository<ModelType extends Model, Reader extends ModelReader<Reader, JsonObject>>
-  extends RemoteModelRepository<ModelType> {
+public class RedisModelRepository<ModelType extends Model, Reader extends ModelReader<Reader,
+                                                                                       JsonObject>>
+  extends AbstractAsyncModelRepository<ModelType> {
 
   private final Gson gson;
   private final Function<JsonObject, Reader> readerFactory;
@@ -32,15 +39,15 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
   private final int expireAfterAccess;
 
   protected RedisModelRepository(
-    @NotNull Executor executor,
-    @NotNull Gson gson,
-    @NotNull Function<JsonObject, Reader> readerFactory,
-    @NotNull ModelCodec.Writer<ModelType, JsonObject> writer,
-    @NotNull ModelCodec.Reader<ModelType, JsonObject, Reader> reader,
-    @NotNull JedisPool jedisPool,
-    @NotNull String tableName,
-    int expireAfterSave,
-    int expireAfterAccess
+    final @NotNull Executor executor,
+    final @NotNull Gson gson,
+    final @NotNull Function<JsonObject, Reader> readerFactory,
+    final @NotNull ModelCodec.Writer<ModelType, JsonObject> writer,
+    final @NotNull ModelCodec.Reader<ModelType, JsonObject, Reader> reader,
+    final @NotNull JedisPool jedisPool,
+    final @NotNull String tableName,
+    final int expireAfterSave,
+    final int expireAfterAccess
   ) {
     super(executor);
     this.gson = gson;
@@ -97,14 +104,24 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
   }
 
   @Override
-  public List<ModelType> findSync(@NotNull String field, @NotNull String value) {
+  public <C extends Collection<ModelType>> @Nullable C findSync(
+    @NotNull final String field,
+    @NotNull final String value,
+    @NotNull final Function<Integer, C> factory
+  ) {
     if (!field.equals(ModelRepository.ID_FIELD)) {
-      throw new IllegalArgumentException(
-        "Only ID field is supported for sync find"
-      );
+      throw new IllegalArgumentException("Only ID field is supported for JSON find");
     }
 
-    return Collections.singletonList(findSync(value));
+    final ModelType model = this.findSync(value);
+
+    if (model == null) {
+      return null;
+    }
+
+    final C collection = factory.apply(1);
+    collection.add(model);
+    return collection;
   }
 
   @Override
@@ -127,15 +144,18 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
   }
 
   @Override
-  public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
-    try (Jedis jedis = jedisPool.getResource()) {
-      Set<String> keys = jedis.keys(tableName + ":*");
+  public <C extends Collection<ModelType>> @Nullable C findAllSync(
+    @NotNull final Consumer<ModelType> postLoadAction,
+    @NotNull final Function<Integer, C> factory
+  ) {
+    try (Jedis jedis = this.jedisPool.getResource()) {
+      Set<String> keys = jedis.keys(this.tableName + ":*");
 
       if (keys == null || keys.isEmpty()) {
-        return Collections.emptyList();
+        return null;
       }
 
-      List<ModelType> result = new ArrayList<>(keys.size());
+      C foundModels = factory.apply(keys.size());
 
       for (String key : keys) {
         ModelType model = readModel(jedis, key);
@@ -145,10 +165,10 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
         }
 
         postLoadAction.accept(model);
-        result.add(model);
+        foundModels.add(model);
       }
 
-      return result;
+      return foundModels;
     }
   }
 

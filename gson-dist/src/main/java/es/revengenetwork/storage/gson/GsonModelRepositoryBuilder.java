@@ -1,9 +1,9 @@
 package es.revengenetwork.storage.gson;
 
 import com.google.gson.Gson;
-import es.revengenetwork.storage.ModelRepository;
-import es.revengenetwork.storage.builder.LayoutModelRepositoryBuilder;
-import es.revengenetwork.storage.dist.DelegatedCachedModelRepository;
+import es.revengenetwork.storage.repository.ModelRepository;
+import es.revengenetwork.storage.repository.builder.LayoutModelRepositoryBuilder;
+import es.revengenetwork.storage.repository.CachedModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +56,7 @@ public class GsonModelRepositoryBuilder<ModelType extends Model>
     if (cacheModelRepository == null) {
       return modelRepository;
     } else {
-      return new DelegatedCachedModelRepository<>(executor, cacheModelRepository, modelRepository);
+      return new CachedModelRepository<>(executor, cacheModelRepository, modelRepository);
     }
   }
 }

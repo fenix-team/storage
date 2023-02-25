@@ -1,9 +1,9 @@
 package es.revengenetwork.storage.gson;
 
 import com.google.gson.Gson;
-import es.revengenetwork.storage.ModelRepository;
-import es.revengenetwork.storage.dist.RemoteModelRepository;
 import es.revengenetwork.storage.model.Model;
+import es.revengenetwork.storage.repository.AbstractAsyncModelRepository;
+import es.revengenetwork.storage.repository.ModelRepository;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,15 +15,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class GsonModelRepository<ModelType extends Model>
-  extends RemoteModelRepository<ModelType> {
+  extends AbstractAsyncModelRepository<ModelType> {
 
   public static <T extends Model> GsonModelRepositoryBuilder<T> builder(Class<T> type) {
     return new GsonModelRepositoryBuilder<>(type);
@@ -51,12 +50,24 @@ public class GsonModelRepository<ModelType extends Model>
   }
 
   @Override
-  public List<ModelType> findSync(@NotNull String field, @NotNull String value) {
+  public <C extends Collection<ModelType>> @Nullable C findSync(
+    @NotNull final String field,
+    @NotNull final String value,
+    @NotNull final Function<Integer, C> factory
+  ) {
     if (!field.equals(ModelRepository.ID_FIELD)) {
-      throw new IllegalArgumentException("Only ID field is supported for sync find");
+      throw new IllegalArgumentException("Only ID field is supported for JSON find");
     }
 
-    return Collections.singletonList(findSync(value));
+    final ModelType model = this.findSync(value);
+
+    if (model == null) {
+      return null;
+    }
+
+    final C collection = factory.apply(1);
+    collection.add(model);
+    return collection;
   }
 
   @Override
@@ -73,15 +84,22 @@ public class GsonModelRepository<ModelType extends Model>
   }
 
   @Override
-  public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
-    try (Stream<Path> walk = Files.walk(this.folderPath)) {
-      return walk.filter(Files::isRegularFile)
-               .map(this::internalFind)
-               .filter(Objects::nonNull)
-               .collect(ArrayList::new, (list, model) -> {
-                 postLoadAction.accept(model);
-                 list.add(model);
-               }, ArrayList::addAll);
+  public <C extends Collection<ModelType>> @Nullable C findAllSync(
+    @NotNull final Consumer<ModelType> postLoadAction,
+    @NotNull final Function<Integer, C> factory
+  ) {
+    try (Stream<Path> walk = Files.walk(this.folderPath, 1)) {
+      final C foundModels = factory.apply(1);
+
+      walk.filter(Files::isRegularFile)
+        .map(this::internalFind)
+        .filter(Objects::nonNull)
+        .forEach(model -> {
+          postLoadAction.accept(model);
+          foundModels.add(model);
+        });
+
+      return foundModels;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -93,7 +111,7 @@ public class GsonModelRepository<ModelType extends Model>
   }
 
   @Override
-  public void saveSync(@NotNull ModelType model) {
+  public void saveSync(final @NotNull ModelType model) {
     final Path modelPath = resolveChild(model.getId());
 
     try {
@@ -104,7 +122,7 @@ public class GsonModelRepository<ModelType extends Model>
       throw new RuntimeException(e);
     }
 
-    try (Writer writer = Files.newBufferedWriter(modelPath, StandardCharsets.UTF_8)) {
+    try (final Writer writer = Files.newBufferedWriter(modelPath, StandardCharsets.UTF_8)) {
       this.gson.toJson(model, this.modelType, writer);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -112,7 +130,7 @@ public class GsonModelRepository<ModelType extends Model>
   }
 
   @Override
-  public boolean deleteSync(@NotNull String id) {
+  public boolean deleteSync(final @NotNull String id) {
     try {
       return Files.deleteIfExists(this.resolveChild(id));
     } catch (IOException e) {
@@ -120,7 +138,7 @@ public class GsonModelRepository<ModelType extends Model>
     }
   }
 
-  private @NotNull Path resolveChild(String id) {
+  private @NotNull Path resolveChild(final @NotNull String id) {
     return this.folderPath.resolve(id + ".json");
   }
 
@@ -129,7 +147,7 @@ public class GsonModelRepository<ModelType extends Model>
       return null;
     }
 
-    try (Reader reader = Files.newBufferedReader(file)) {
+    try (final Reader reader = Files.newBufferedReader(file)) {
       return this.gson.fromJson(reader, this.modelType);
     } catch (IOException e) {
       throw new RuntimeException(e);

@@ -1,12 +1,12 @@
-package es.revengenetwork.storage;
+package es.revengenetwork.storage.repository;
 
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public interface ModelRepository<ModelType extends Model> {
 
@@ -14,15 +14,24 @@ public interface ModelRepository<ModelType extends Model> {
 
   @Nullable ModelType findSync(@NotNull String id);
 
-  @Nullable List<ModelType> findSync(@NotNull String field, @NotNull String value);
+  <C extends Collection<ModelType>> @Nullable C findSync(
+    @NotNull String field,
+    @NotNull String value,
+    @NotNull Function<Integer, C> factory
+  );
 
   @Nullable Collection<String> findIdsSync();
 
-  default @Nullable List<ModelType> findAllSync() {
-    return findAllSync(modelType -> { });
+  default <C extends Collection<ModelType>> @Nullable C findAllSync(
+    @NotNull Function<Integer, C> factory
+  ) {
+    return findAllSync(modelType -> { }, factory);
   }
 
-  @Nullable List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction);
+  <C extends Collection<ModelType>> @Nullable C findAllSync(
+    @NotNull Consumer<ModelType> postLoadAction,
+    @NotNull Function<Integer, C> factory
+  );
 
   boolean existsSync(@NotNull String id);
 

@@ -1,26 +1,27 @@
 package es.revengenetwork.storage.caffeine;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import es.revengenetwork.storage.ModelRepository;
 import es.revengenetwork.storage.model.Model;
+import es.revengenetwork.storage.repository.ModelRepository;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class CaffeineModelRepository<ModelType extends Model>
   implements ModelRepository<ModelType> {
 
   private final Cache<String, ModelType> cache;
 
-  protected CaffeineModelRepository(Cache<String, ModelType> cache) {
+  protected CaffeineModelRepository(final @NotNull Cache<String, ModelType> cache) {
     this.cache = cache;
   }
 
-  public static <T extends Model> CaffeineModelRepository<T> create(Cache<String, T> cache) {
+  public static <T extends Model> @NotNull CaffeineModelRepository<T> create(
+    final @NotNull Cache<String, T> cache
+  ) {
     return new CaffeineModelRepository<>(cache);
   }
 
@@ -30,27 +31,41 @@ public class CaffeineModelRepository<ModelType extends Model>
   }
 
   @Override
-  public @Nullable List<ModelType> findSync(@NotNull String field, @NotNull String value) {
-    return Collections.singletonList(findSync(value));
+  public <C extends Collection<ModelType>> @Nullable C findSync(
+    @NotNull final String field,
+    @NotNull final String value,
+    @NotNull final Function<Integer, C> factory
+  ) {
+    throw new UnsupportedOperationException("Not implemented yet");
   }
 
   @Override
   public @Nullable Collection<String> findIdsSync() {
-    return cache.asMap().keySet();
+    return cache.asMap()
+             .keySet();
   }
 
   @Override
-  public @Nullable List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
-    return cache.asMap()
-             .values()
-             .stream()
-             .peek(postLoadAction)
-             .toList();
+  public <C extends Collection<ModelType>> @Nullable C findAllSync(
+    @NotNull final Consumer<ModelType> postLoadAction,
+    @NotNull final Function<Integer, C> factory
+  ) {
+    final Collection<ModelType> values = cache.asMap()
+                                           .values();
+    final C foundModels = factory.apply(values.size());
+
+    for (final ModelType value : values) {
+      postLoadAction.accept(value);
+      foundModels.add(value);
+    }
+
+    return foundModels;
   }
 
   @Override
   public boolean existsSync(@NotNull final String id) {
-    return cache.asMap().containsKey(id);
+    return cache.asMap()
+             .containsKey(id);
   }
 
   @Override

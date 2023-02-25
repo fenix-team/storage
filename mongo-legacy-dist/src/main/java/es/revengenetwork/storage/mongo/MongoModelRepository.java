@@ -5,8 +5,8 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
-import es.revengenetwork.storage.dist.RemoteModelRepository;
 import es.revengenetwork.storage.model.Model;
+import es.revengenetwork.storage.repository.AbstractAsyncModelRepository;
 import org.bson.Document;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class MongoModelRepository<ModelType extends Model, Reader extends ModelReader<Reader, Document>>
-  extends RemoteModelRepository<ModelType> {
+  extends AbstractAsyncModelRepository<ModelType> {
 
   public static final String ID_FIELD = "_id";
 
@@ -30,11 +30,11 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
   private final ModelCodec.Reader<ModelType, Document, Reader> modelReader;
 
   protected MongoModelRepository(
-    @NotNull Executor executor,
-    @NotNull MongoCollection<Document> mongoCollection,
-    @NotNull Function<Document, Reader> readerFactory,
-    @NotNull ModelCodec.Writer<ModelType, Document> writer,
-    @NotNull ModelCodec.Reader<ModelType, Document, Reader> modelReader
+    final @NotNull Executor executor,
+    final @NotNull MongoCollection<Document> mongoCollection,
+    final @NotNull Function<Document, Reader> readerFactory,
+    final @NotNull ModelCodec.Writer<ModelType, Document> writer,
+    final @NotNull ModelCodec.Reader<ModelType, Document, Reader> modelReader
   ) {
     super(executor);
 
@@ -47,35 +47,37 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
   @Contract(pure = true, value = "_, _ -> new")
   public static <T extends Model, Reader extends ModelReader<Reader, Document>>
   @NotNull MongoModelRepositoryBuilder<T, Reader> builder(
-    @NotNull Class<T> type,
-    @NotNull Class<Reader> ignoredReaderType
+    final @NotNull Class<T> type,
+    final @NotNull Class<Reader> ignoredReaderType
   ) {
     return new MongoModelRepositoryBuilder<>(type);
   }
 
   @Override
   public @Nullable ModelType findSync(@NotNull String id) {
-    Document document = mongoCollection
-                          .find(Filters.eq(ID_FIELD, id))
+    Document document = this.mongoCollection.find(Filters.eq(ID_FIELD, id))
                           .first();
 
     if (document == null) {
       return null;
     }
 
-    return modelReader.deserialize(readerFactory.apply(document));
+    return this.modelReader.deserialize(this.readerFactory.apply(document));
   }
 
   @Override
-  public List<ModelType> findSync(@NotNull String field, @NotNull String value) {
-    List<ModelType> models = new ArrayList<>();
+  public <C extends Collection<ModelType>> @Nullable C findSync(
+    @NotNull final String field,
+    @NotNull final String value,
+    @NotNull final Function<Integer, C> factory
+  ) {
+    final C foundModels = factory.apply(1);
 
-    for (Document document : mongoCollection
-                               .find(Filters.eq(field, value))) {
-      models.add(modelReader.deserialize(readerFactory.apply(document)));
+    for (final Document document : this.mongoCollection.find(Filters.eq(field, value))) {
+      foundModels.add(this.modelReader.deserialize(this.readerFactory.apply(document)));
     }
 
-    return models;
+    return null;
   }
 
   @Override
@@ -90,24 +92,27 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
   }
 
   @Override
-  public List<ModelType> findAllSync(@NotNull Consumer<ModelType> postLoadAction) {
-    List<Document> documents = mongoCollection.find()
-                                 .into(new ArrayList<>());
+  public <C extends Collection<ModelType>> @Nullable C findAllSync(
+    @NotNull final Consumer<ModelType> postLoadAction,
+    @NotNull final Function<Integer, C> factory
+  ) {
+    final List<Document> documents = this.mongoCollection.find()
+                                       .into(new ArrayList<>());
+    final C foundModels = factory.apply(documents.size());
 
-    List<ModelType> models = new ArrayList<>();
-
-    for (Document document : documents) {
-      ModelType model = modelReader.deserialize(readerFactory.apply(document));
+    for (final Document document : documents) {
+      final ModelType model = this.modelReader.deserialize(this.readerFactory.apply(document));
       postLoadAction.accept(model);
-      models.add(model);
+      foundModels.add(model);
     }
 
-    return models;
+    return foundModels;
   }
 
   @Override
   public boolean existsSync(@NotNull final String id) {
-    return mongoCollection.find(Filters.eq(ID_FIELD, id)).first() != null;
+    return mongoCollection.find(Filters.eq(ID_FIELD, id))
+             .first() != null;
   }
 
   @Override

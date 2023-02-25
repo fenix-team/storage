@@ -2,11 +2,11 @@ package es.revengenetwork.storage.redis;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import es.revengenetwork.storage.ModelRepository;
-import es.revengenetwork.storage.builder.LayoutModelRepositoryBuilder;
+import es.revengenetwork.storage.repository.ModelRepository;
+import es.revengenetwork.storage.repository.builder.LayoutModelRepositoryBuilder;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
-import es.revengenetwork.storage.dist.DelegatedCachedModelRepository;
+import es.revengenetwork.storage.repository.CachedModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -107,7 +107,7 @@ public class RedisModelRepositoryBuilder
     if (cacheModelRepository == null) {
       return modelRepository;
     } else {
-      return new DelegatedCachedModelRepository<>(executor, cacheModelRepository, modelRepository);
+      return new CachedModelRepository<>(executor, cacheModelRepository, modelRepository);
     }
   }
 }

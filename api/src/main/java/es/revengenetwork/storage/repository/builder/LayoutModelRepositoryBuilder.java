@@ -1,6 +1,6 @@
-package es.revengenetwork.storage.builder;
+package es.revengenetwork.storage.repository.builder;
 
-import es.revengenetwork.storage.ModelRepository;
+import es.revengenetwork.storage.repository.ModelRepository;
 import es.revengenetwork.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
 
