@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+@SuppressWarnings("unused")
 public class CaffeineModelRepository<ModelType extends Model>
   implements ModelRepository<ModelType> {
 
@@ -32,9 +33,9 @@ public class CaffeineModelRepository<ModelType extends Model>
 
   @Override
   public <C extends Collection<ModelType>> @Nullable C findSync(
-    @NotNull final String field,
-    @NotNull final String value,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull String field,
+    final @NotNull String value,
+    final @NotNull Function<Integer, C> factory
   ) {
     throw new UnsupportedOperationException("Not implemented yet");
   }
@@ -47,8 +48,8 @@ public class CaffeineModelRepository<ModelType extends Model>
 
   @Override
   public <C extends Collection<ModelType>> @Nullable C findAllSync(
-    @NotNull final Consumer<ModelType> postLoadAction,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull Consumer<ModelType> postLoadAction,
+    final @NotNull Function<Integer, C> factory
   ) {
     final Collection<ModelType> values = cache.asMap()
                                            .values();
@@ -63,7 +64,7 @@ public class CaffeineModelRepository<ModelType extends Model>
   }
 
   @Override
-  public boolean existsSync(@NotNull final String id) {
+  public boolean existsSync(final @NotNull String id) {
     return cache.asMap()
              .containsKey(id);
   }

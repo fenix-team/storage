@@ -11,6 +11,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+@SuppressWarnings("unused")
 public class CachedModelRepository<ModelType extends Model>
   extends AbstractAsyncModelRepository<ModelType> {
 
@@ -27,11 +28,11 @@ public class CachedModelRepository<ModelType extends Model>
     this.persistModelRepository = persistModelRepository;
   }
 
-  public @Nullable ModelType getSync(@NotNull final String id) {
+  public @Nullable ModelType getSync(final @NotNull String id) {
     return this.cacheModelRepository.findSync(id);
   }
 
-  public @Nullable ModelType getOrFindSync(@NotNull final String id) {
+  public @Nullable ModelType getOrFindSync(final @NotNull String id) {
     final ModelType model = this.getSync(id);
 
     if (model != null) {
@@ -41,7 +42,7 @@ public class CachedModelRepository<ModelType extends Model>
     return this.findSync(id);
   }
 
-  public @Nullable ModelType getOrFindAndCacheSync(@NotNull final String id) {
+  public @Nullable ModelType getOrFindAndCacheSync(final @NotNull String id) {
     final ModelType model = this.getSync(id);
 
     if (model != null) {
@@ -63,14 +64,14 @@ public class CachedModelRepository<ModelType extends Model>
   }
 
   public <C extends Collection<ModelType>> @Nullable C getAllSync(
-    @NotNull final Function<Integer, C> factory
+    final @NotNull Function<Integer, C> factory
   ) {
     return this.cacheModelRepository.findAllSync(factory);
   }
 
   public <C extends Collection<ModelType>> @Nullable C loadAllSync(
-    @NotNull final Consumer<ModelType> postLoadAction,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull Consumer<ModelType> postLoadAction,
+    final @NotNull Function<Integer, C> factory
   ) {
     final C models = this.persistModelRepository.findAllSync(postLoadAction, factory);
 
@@ -85,13 +86,13 @@ public class CachedModelRepository<ModelType extends Model>
     return models;
   }
 
-  public void uploadSync(@NotNull final ModelType model) {
+  public void uploadSync(final @NotNull ModelType model) {
     this.cacheModelRepository.deleteSync(model);
     this.persistModelRepository.saveSync(model);
   }
 
-  public void uploadAllSync(@NotNull final Consumer<ModelType> preUploadAction) {
-    this.persistModelRepository.findAllSync(
+  public void uploadAllSync(final @NotNull Consumer<ModelType> preUploadAction) {
+    this.cacheModelRepository.findAllSync(
       model -> {
         preUploadAction.accept(model);
         this.cacheModelRepository.deleteSync(model);
@@ -101,37 +102,37 @@ public class CachedModelRepository<ModelType extends Model>
     );
   }
 
-  public boolean existsInCacheSync(@NotNull final String id) {
+  public boolean existsInCacheSync(final @NotNull String id) {
     return this.cacheModelRepository.existsSync(id);
   }
 
-  public boolean existsInCacheOrPersistentSync(@NotNull final String id) {
+  public boolean existsInCacheOrPersistentSync(final @NotNull String id) {
     return this.existsInCacheSync(id) || this.persistModelRepository.existsSync(id);
   }
 
-  public boolean existsInBothSync(@NotNull final String id) {
+  public boolean existsInBothSync(final @NotNull String id) {
     return this.existsInCacheSync(id) && this.persistModelRepository.existsSync(id);
   }
 
-  public void saveInCacheSync(@NotNull final ModelType model) {
+  public void saveInCacheSync(final @NotNull ModelType model) {
     this.cacheModelRepository.saveSync(model);
   }
 
-  public void saveInBothSync(@NotNull final ModelType model) {
+  public void saveInBothSync(final @NotNull ModelType model) {
     this.cacheModelRepository.saveSync(model);
     this.persistModelRepository.saveSync(model);
   }
 
-  public boolean deleteInCacheSync(@NotNull final String id) {
+  public boolean deleteInCacheSync(final @NotNull String id) {
     return this.cacheModelRepository.deleteSync(id);
   }
 
-  public boolean deleteInBothSync(@NotNull final String id) {
+  public boolean deleteInBothSync(final @NotNull String id) {
     return this.cacheModelRepository.deleteSync(id) &&
            this.persistModelRepository.deleteSync(id);
   }
 
-  public void saveAllSync(@NotNull final Consumer<ModelType> preSaveAction) {
+  public void saveAllSync(final @NotNull Consumer<ModelType> preSaveAction) {
     this.cacheModelRepository.findAllSync(
       model -> {
         preSaveAction.accept(model);
@@ -142,15 +143,15 @@ public class CachedModelRepository<ModelType extends Model>
   }
 
   @Override
-  public @Nullable ModelType findSync(@NotNull final String id) {
+  public @Nullable ModelType findSync(final @NotNull String id) {
     return this.persistModelRepository.findSync(id);
   }
 
   @Override
   public <C extends Collection<ModelType>> @Nullable C findSync(
-    @NotNull final String field,
-    @NotNull final String value,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull String field,
+    final @NotNull String value,
+    final @NotNull Function<Integer, C> factory
   ) {
     return this.persistModelRepository.findSync(field, value, factory);
   }
@@ -162,39 +163,39 @@ public class CachedModelRepository<ModelType extends Model>
 
   @Override
   public <C extends Collection<ModelType>> @Nullable C findAllSync(
-    @NotNull final Consumer<ModelType> postLoadAction,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull Consumer<ModelType> postLoadAction,
+    final @NotNull Function<Integer, C> factory
   ) {
     return this.persistModelRepository.findAllSync(postLoadAction, factory);
   }
 
   @Override
-  public boolean existsSync(@NotNull final String id) {
+  public boolean existsSync(final @NotNull String id) {
     return this.persistModelRepository.existsSync(id);
   }
 
   @Override
-  public void saveSync(@NotNull final ModelType model) {
+  public void saveSync(final @NotNull ModelType model) {
     this.persistModelRepository.saveSync(model);
   }
 
   @Override
-  public boolean deleteSync(@NotNull final String id) {
+  public boolean deleteSync(final @NotNull String id) {
     return this.persistModelRepository.deleteSync(id);
   }
 
-  public @NotNull CompletableFuture<@Nullable ModelType> get(@NotNull String id) {
-    return CompletableFuture.supplyAsync(() -> getSync(id), executor);
+  public @NotNull CompletableFuture<@Nullable ModelType> get(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.getSync(id), executor);
   }
 
-  public @NotNull CompletableFuture<@Nullable ModelType> getOrFind(@NotNull String id) {
-    return CompletableFuture.supplyAsync(() -> getOrFindSync(id), executor);
+  public @NotNull CompletableFuture<@Nullable ModelType> getOrFind(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.getOrFindSync(id), executor);
   }
 
   public @NotNull CompletableFuture<@Nullable ModelType> getOrFindAndCache(
-    @NotNull final String id
+    final @NotNull String id
   ) {
-    return CompletableFuture.supplyAsync(() -> getOrFindAndCacheSync(id), executor);
+    return CompletableFuture.supplyAsync(() -> this.getOrFindAndCacheSync(id), executor);
   }
 
   public @NotNull CompletableFuture<@Nullable Collection<String>> getAllIds() {
@@ -202,65 +203,65 @@ public class CachedModelRepository<ModelType extends Model>
   }
 
   public @NotNull <C extends Collection<ModelType>> CompletableFuture<@Nullable C> getAll(
-    @NotNull final Function<Integer, C> factory
+    final @NotNull Function<Integer, C> factory
   ) {
-    return CompletableFuture.supplyAsync(() -> getAllSync(factory), executor);
+    return CompletableFuture.supplyAsync(() -> this.getAllSync(factory), executor);
   }
 
   public @NotNull <C extends Collection<ModelType>> CompletableFuture<@Nullable C> loadAll(
     final @NotNull Consumer<ModelType> postLoadAction,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull Function<Integer, C> factory
   ) {
-    return CompletableFuture.supplyAsync(() -> loadAllSync(postLoadAction, factory), executor);
+    return CompletableFuture.supplyAsync(() -> this.loadAllSync(postLoadAction, factory), executor);
   }
 
-  public @NotNull CompletableFuture<Void> upload(@NotNull ModelType model) {
-    return CompletableFuture.runAsync(() -> uploadSync(model), executor);
+  public @NotNull CompletableFuture<Void> upload(final @NotNull ModelType model) {
+    return CompletableFuture.runAsync(() -> this.uploadSync(model), executor);
   }
 
   public @NotNull CompletableFuture<Void> uploadAll() {
-    return uploadAll(modelType -> { });
+    return this.uploadAll(modelType -> { });
   }
 
-  public @NotNull CompletableFuture<Void> uploadAll(@NotNull Consumer<ModelType> preUploadAction) {
-    return CompletableFuture.runAsync(() -> uploadAllSync(preUploadAction), executor);
+  public @NotNull CompletableFuture<Void> uploadAll(final @NotNull Consumer<ModelType> preUploadAction) {
+    return CompletableFuture.runAsync(() -> this.uploadAllSync(preUploadAction), executor);
   }
 
-  public @NotNull CompletableFuture<@NotNull Boolean> existsInCache(@NotNull final String id) {
-    return CompletableFuture.supplyAsync(() -> existsInCacheSync(id), executor);
+  public @NotNull CompletableFuture<@NotNull Boolean> existsInCache(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.existsInCacheSync(id), executor);
   }
 
   public @NotNull CompletableFuture<@NotNull Boolean> existsInCacheOrPersistent(
-    @NotNull final String id
+    final @NotNull String id
   ) {
-    return CompletableFuture.supplyAsync(() -> existsInCacheOrPersistentSync(id), executor);
+    return CompletableFuture.supplyAsync(() -> this.existsInCacheOrPersistentSync(id), executor);
   }
 
-  public @NotNull CompletableFuture<@NotNull Boolean> existsInBoth(@NotNull final String id) {
-    return CompletableFuture.supplyAsync(() -> existsInBothSync(id), executor);
+  public @NotNull CompletableFuture<@NotNull Boolean> existsInBoth(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.existsInBothSync(id), executor);
   }
 
-  public @NotNull CompletableFuture<Void> saveInCache(@NotNull final ModelType model) {
-    return CompletableFuture.runAsync(() -> saveInCacheSync(model), executor);
+  public @NotNull CompletableFuture<Void> saveInCache(final @NotNull ModelType model) {
+    return CompletableFuture.runAsync(() -> this.saveInCacheSync(model), executor);
   }
 
-  public @NotNull CompletableFuture<Void> saveInBoth(@NotNull final ModelType model) {
-    return CompletableFuture.runAsync(() -> saveInBothSync(model), executor);
+  public @NotNull CompletableFuture<Void> saveInBoth(final @NotNull ModelType model) {
+    return CompletableFuture.runAsync(() -> this.saveInBothSync(model), executor);
   }
 
-  public @NotNull CompletableFuture<Boolean> deleteInCache(@NotNull final String id) {
-    return CompletableFuture.supplyAsync(() -> deleteInCacheSync(id), executor);
+  public @NotNull CompletableFuture<Boolean> deleteInCache(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.deleteInCacheSync(id), executor);
   }
 
-  public @NotNull CompletableFuture<Boolean> deleteInBoth(@NotNull final String id) {
-    return CompletableFuture.supplyAsync(() -> deleteInBothSync(id), executor);
+  public @NotNull CompletableFuture<Boolean> deleteInBoth(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.deleteInBothSync(id), executor);
   }
 
   public @NotNull CompletableFuture<Void> saveAll() {
-    return saveAll(modelType -> { });
+    return this.saveAll(modelType -> { });
   }
 
-  public @NotNull CompletableFuture<Void> saveAll(@NotNull Consumer<ModelType> preSaveAction) {
-    return CompletableFuture.runAsync(() -> saveAllSync(preSaveAction), executor);
+  public @NotNull CompletableFuture<Void> saveAll(final @NotNull Consumer<ModelType> preSaveAction) {
+    return CompletableFuture.runAsync(() -> this.saveAllSync(preSaveAction), executor);
   }
 }

@@ -16,7 +16,6 @@ import redis.clients.jedis.JedisPool;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +24,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+@SuppressWarnings("unused")
 public class RedisModelRepository<ModelType extends Model, Reader extends ModelReader<Reader,
                                                                                        JsonObject>>
   extends AbstractAsyncModelRepository<ModelType> {
@@ -60,54 +60,51 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
     this.expireAfterAccess = expireAfterAccess;
   }
 
-  @Contract(pure = true, value = "_, _ -> new")
+  @Contract(value = " -> new")
   public static <T extends Model, Reader extends ModelReader<Reader, JsonObject>>
-  @NotNull RedisModelRepositoryBuilder<T, Reader> builder(
-    @NotNull Class<T> type,
-    @NotNull Class<Reader> ignoredReaderType
-  ) {
-    return new RedisModelRepositoryBuilder<>(type);
+  @NotNull RedisModelRepositoryBuilder<T, Reader> builder() {
+    return new RedisModelRepositoryBuilder<>();
   }
 
   @Override
-  public void saveSync(@NotNull ModelType model) {
-    try (Jedis jedis = jedisPool.getResource()) {
-      JsonObject object = writer.serialize(model);
-      Map<String, String> map = new HashMap<>(object.size());
+  public void saveSync(final @NotNull ModelType model) {
+    try (final Jedis jedis = this.jedisPool.getResource()) {
+      final JsonObject object = this.writer.serialize(model);
+      final Map<String, String> map = new HashMap<>(object.size());
 
-      for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
+      for (final Map.Entry<String, JsonElement> entry : object.entrySet()) {
         map.put(entry.getKey(), gson.toJson(entry.getValue()));
       }
 
-      String key = tableName + ":" + model.getId();
+      final String key = this.tableName + ":" + model.getId();
       jedis.hset(key, map);
 
-      if (expireAfterSave > 0) {
-        jedis.expire(key, expireAfterSave);
+      if (this.expireAfterSave > 0) {
+        jedis.expire(key, this.expireAfterSave);
       }
     }
   }
 
   @Override
-  public boolean deleteSync(@NotNull String id) {
-    try (Jedis jedis = jedisPool.getResource()) {
-      return jedis.del(tableName + ":" + id) > 0;
+  public boolean deleteSync(final @NotNull String id) {
+    try (final Jedis jedis = this.jedisPool.getResource()) {
+      return jedis.del(this.tableName + ":" + id) > 0;
     }
   }
 
   @Override
-  public @Nullable ModelType findSync(@NotNull String id) {
-    try (Jedis jedis = jedisPool.getResource()) {
-      String key = tableName + ":" + id;
-      return readModel(jedis, key);
+  public @Nullable ModelType findSync(final @NotNull String id) {
+    try (final Jedis jedis = jedisPool.getResource()) {
+      final String key = this.tableName + ":" + id;
+      return this.readModel(jedis, key);
     }
   }
 
   @Override
   public <C extends Collection<ModelType>> @Nullable C findSync(
-    @NotNull final String field,
-    @NotNull final String value,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull String field,
+    final @NotNull String value,
+    final @NotNull Function<Integer, C> factory
   ) {
     if (!field.equals(ModelRepository.ID_FIELD)) {
       throw new IllegalArgumentException("Only ID field is supported for JSON find");
@@ -126,17 +123,17 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
 
   @Override
   public @Nullable Collection<String> findIdsSync() {
-    try (Jedis jedis = jedisPool.getResource()) {
-      Set<String> keys = jedis.keys(tableName + ":*");
+    try (final Jedis jedis = this.jedisPool.getResource()) {
+      final Set<String> keys = jedis.keys(this.tableName + ":*");
 
       if (keys == null || keys.isEmpty()) {
-        return Collections.emptyList();
+        return null;
       }
 
-      List<String> result = new ArrayList<>(keys.size());
+      final List<String> result = new ArrayList<>(keys.size());
 
-      for (String key : keys) {
-        result.add(key.substring(tableName.length() + 1));
+      for (final String key : keys) {
+        result.add(key.substring(this.tableName.length() + 1));
       }
 
       return result;
@@ -145,20 +142,20 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
 
   @Override
   public <C extends Collection<ModelType>> @Nullable C findAllSync(
-    @NotNull final Consumer<ModelType> postLoadAction,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull Consumer<ModelType> postLoadAction,
+    final @NotNull Function<Integer, C> factory
   ) {
-    try (Jedis jedis = this.jedisPool.getResource()) {
-      Set<String> keys = jedis.keys(this.tableName + ":*");
+    try (final Jedis jedis = this.jedisPool.getResource()) {
+      final Set<String> keys = jedis.keys(this.tableName + ":*");
 
       if (keys == null || keys.isEmpty()) {
         return null;
       }
 
-      C foundModels = factory.apply(keys.size());
+      final C foundModels = factory.apply(keys.size());
 
-      for (String key : keys) {
-        ModelType model = readModel(jedis, key);
+      for (final String key : keys) {
+        final ModelType model = this.readModel(jedis, key);
 
         if (model == null) {
           continue;
@@ -173,29 +170,29 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
   }
 
   @Override
-  public boolean existsSync(@NotNull final String id) {
-    try (Jedis jedis = jedisPool.getResource()) {
-      return jedis.exists(tableName + ":" + id);
+  public boolean existsSync(final @NotNull String id) {
+    try (final Jedis jedis = this.jedisPool.getResource()) {
+      return jedis.exists(this.tableName + ":" + id);
     }
   }
 
-  private @Nullable ModelType readModel(@NotNull Jedis jedis, @NotNull String key) {
-    Map<String, String> map = jedis.hgetAll(key);
+  private @Nullable ModelType readModel(final @NotNull Jedis jedis, final @NotNull String key) {
+    final Map<String, String> map = jedis.hgetAll(key);
 
     if (map.isEmpty()) {
       return null;
     }
 
-    if (expireAfterAccess > 0) {
-      jedis.expire(key, expireAfterAccess);
+    if (this.expireAfterAccess > 0) {
+      jedis.expire(key, this.expireAfterAccess);
     }
 
-    JsonObject object = new JsonObject();
+    final JsonObject object = new JsonObject();
 
-    for (Map.Entry<String, String> entry : map.entrySet()) {
-      object.add(entry.getKey(), gson.fromJson(entry.getValue(), JsonElement.class));
+    for (final Map.Entry<String, String> entry : map.entrySet()) {
+      object.add(entry.getKey(), this.gson.fromJson(entry.getValue(), JsonElement.class));
     }
 
-    return reader.deserialize(readerFactory.apply(object));
+    return this.reader.deserialize(this.readerFactory.apply(object));
   }
 }

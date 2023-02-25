@@ -11,41 +11,41 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public abstract class AbstractAsyncModelRepository<ModelType extends Model>
-  implements ModelRepository<ModelType>, AsyncModelRepository<ModelType> {
+  implements AsyncModelRepository<ModelType> {
 
   protected final Executor executor;
 
-  public AbstractAsyncModelRepository(@NotNull Executor executor) {
+  public AbstractAsyncModelRepository(final @NotNull Executor executor) {
     this.executor = executor;
   }
 
   @Override
-  public @NotNull CompletableFuture<@Nullable ModelType> find(@NotNull String id) {
-    return CompletableFuture.supplyAsync(() -> findSync(id), executor);
+  public @NotNull CompletableFuture<@Nullable ModelType> find(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.findSync(id), executor);
   }
 
   @Override
   public @NotNull <C extends Collection<ModelType>> CompletableFuture<@Nullable C> find(
-    @NotNull final String field,
-    @NotNull final String value,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull String field,
+    final @NotNull String value,
+    final @NotNull Function<Integer, C> factory
   ) {
-    return CompletableFuture.supplyAsync(() -> findSync(field, value, factory), executor);
+    return CompletableFuture.supplyAsync(() -> this.findSync(field, value, factory), executor);
   }
 
   @Override
   public @NotNull <C extends Collection<ModelType>> CompletableFuture<@Nullable C> findAll(
-    @NotNull final Function<Integer, C> factory
+    final @NotNull Function<Integer, C> factory
   ) {
-    return CompletableFuture.supplyAsync(() -> findAllSync(factory), executor);
+    return CompletableFuture.supplyAsync(() -> this.findAllSync(factory), executor);
   }
 
   @Override
   public @NotNull <C extends Collection<ModelType>> CompletableFuture<@Nullable C> findAll(
-    @NotNull final Consumer<ModelType> postLoadAction,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull Consumer<ModelType> postLoadAction,
+    final @NotNull Function<Integer, C> factory
   ) {
-    return CompletableFuture.supplyAsync(() -> findAllSync(postLoadAction, factory), executor);
+    return CompletableFuture.supplyAsync(() -> this.findAllSync(postLoadAction, factory), executor);
   }
 
   @Override
@@ -54,22 +54,22 @@ public abstract class AbstractAsyncModelRepository<ModelType extends Model>
   }
 
   @Override
-  public @NotNull CompletableFuture<@NotNull Boolean> exists(@NotNull final String id) {
-    return CompletableFuture.supplyAsync(() -> existsSync(id), executor);
+  public @NotNull CompletableFuture<@NotNull Boolean> exists(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.existsSync(id), executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> save(@NotNull ModelType model) {
-    return CompletableFuture.runAsync(() -> saveSync(model), executor);
+  public @NotNull CompletableFuture<Void> save(final @NotNull ModelType model) {
+    return CompletableFuture.runAsync(() -> this.saveSync(model), executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<@NotNull Boolean> delete(@NotNull ModelType model) {
-    return CompletableFuture.supplyAsync(() -> deleteSync(model), executor);
+  public @NotNull CompletableFuture<@NotNull Boolean> delete(final @NotNull ModelType model) {
+    return CompletableFuture.supplyAsync(() -> this.deleteSync(model), executor);
   }
 
   @Override
-  public @NotNull CompletableFuture<@NotNull Boolean> delete(@NotNull String id) {
-    return CompletableFuture.supplyAsync(() -> deleteSync(id), executor);
+  public @NotNull CompletableFuture<@NotNull Boolean> delete(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.deleteSync(id), executor);
   }
 }

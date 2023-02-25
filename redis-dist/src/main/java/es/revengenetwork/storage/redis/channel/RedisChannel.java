@@ -12,6 +12,7 @@ import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 public class RedisChannel<T> {
 
   private final String parentChannel;
@@ -24,9 +25,12 @@ public class RedisChannel<T> {
   private final Gson gson;
 
   public RedisChannel(
-    @NotNull String parentChannel, @NotNull String serverId,
-    @NotNull String name, @NotNull Type type,
-    @NotNull JedisPool jedisPool, @NotNull Gson gson
+    final @NotNull String parentChannel,
+    final @NotNull String serverId,
+    final @NotNull String name,
+    final @NotNull Type type,
+    final @NotNull JedisPool jedisPool,
+    final @NotNull Gson gson
   ) {
     this.parentChannel = parentChannel;
     this.serverId = serverId;
@@ -38,48 +42,48 @@ public class RedisChannel<T> {
   }
 
   public @NotNull String getName() {
-    return name;
+    return this.name;
   }
 
   public @NotNull Type getType() {
-    return type;
+    return this.type;
   }
 
-  public void sendMessage(@NotNull T message, @Nullable String targetServer) {
-    JsonObject objectToSend = new JsonObject();
+  public void sendMessage(final @NotNull T message, final @Nullable String targetServer) {
+    final JsonObject objectToSend = new JsonObject();
 
-    objectToSend.addProperty("channel", name);
-    objectToSend.addProperty("server", serverId);
+    objectToSend.addProperty("channel", this.name);
+    objectToSend.addProperty("server", this.serverId);
 
     if (targetServer != null) {
       objectToSend.addProperty("targetServer", targetServer);
     }
 
-    JsonElement serializedMessage = gson.toJsonTree(message, type);
+    final JsonElement serializedMessage = gson.toJsonTree(message, type);
     objectToSend.add("message", serializedMessage);
-    String json = objectToSend.toString();
+    final String json = objectToSend.toString();
 
-    try (Jedis jedis = jedisPool.getResource()) {
-      jedis.publish(parentChannel, json);
+    try (final Jedis jedis = this.jedisPool.getResource()) {
+      jedis.publish(this.parentChannel, json);
     }
   }
 
-  public void sendMessage(@NotNull T message) {
-    sendMessage(message, null);
+  public void sendMessage(final @NotNull T message) {
+    this.sendMessage(message, null);
   }
 
-  public @NotNull RedisChannel<T> addListener(@NotNull RedisChannelListener<T> redisChannelListener) {
-    listeners.add(redisChannelListener);
+  public @NotNull RedisChannel<T> addListener(final @NotNull RedisChannelListener<T> redisChannelListener) {
+    this.listeners.add(redisChannelListener);
     return this;
   }
 
-  public void listen(@NotNull String server, @NotNull T object) {
-    for (RedisChannelListener<T> listener : listeners) {
+  public void listen(final @NotNull String server, final @NotNull T object) {
+    for (final RedisChannelListener<T> listener : listeners) {
       listener.listen(this, server, object);
     }
   }
 
   public @NotNull Set<RedisChannelListener<T>> getListeners() {
-    return listeners;
+    return this.listeners;
   }
 }

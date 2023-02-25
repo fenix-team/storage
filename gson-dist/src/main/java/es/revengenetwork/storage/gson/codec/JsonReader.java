@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
+@SuppressWarnings("unused")
 public class JsonReader
   implements ModelReader<JsonReader, JsonObject> {
 
@@ -32,27 +34,28 @@ public class JsonReader
 
   private final JsonObject jsonObject;
 
-  private JsonReader(@NotNull JsonObject jsonObject) {
+  private JsonReader(final @NotNull JsonObject jsonObject) {
     this.jsonObject = jsonObject;
   }
 
-  public static JsonReader create(@NotNull JsonObject jsonObject) {
+  @Contract("_ -> new")
+  public static @NotNull JsonReader create(final @NotNull JsonObject jsonObject) {
     return new JsonReader(jsonObject);
   }
 
   @Override
   public @NotNull JsonObject getRaw() {
-    return jsonObject;
+    return this.jsonObject;
   }
 
   @Override
-  public @Nullable JsonObject readThis(@NotNull String field) {
-    return jsonObject.getAsJsonObject(field);
+  public @Nullable JsonObject readThis(final @NotNull String field) {
+    return this.jsonObject.getAsJsonObject(field);
   }
 
   @Override
-  public @Nullable String readString(@NotNull String field) {
-    JsonElement element = jsonObject.get(field);
+  public @Nullable String readString(final @NotNull String field) {
+    final JsonElement element = this.jsonObject.get(field);
 
     if (element == null) {
       return null;
@@ -62,8 +65,8 @@ public class JsonReader
   }
 
   @Override
-  public @Nullable Number readNumber(@NotNull String field) {
-    JsonElement element = jsonObject.get(field);
+  public @Nullable Number readNumber(final @NotNull String field) {
+    final JsonElement element = this.jsonObject.get(field);
 
     if (element == null) {
       return null;
@@ -73,8 +76,8 @@ public class JsonReader
   }
 
   @Override
-  public @Nullable Boolean readBoolean(@NotNull String field) {
-    JsonElement element = jsonObject.get(field);
+  public @Nullable Boolean readBoolean(final @NotNull String field) {
+    final JsonElement element = this.jsonObject.get(field);
 
     if (element == null) {
       return null;
@@ -86,21 +89,22 @@ public class JsonReader
   @SuppressWarnings("unchecked")
   @Override
   public <T, C extends Collection<T>> @Nullable C readRawCollection(
-    @NotNull String field, @NotNull Class<T> clazz,
-    @NotNull Function<Integer, C> collectionFactory
+    final @NotNull String field,
+    final @NotNull Class<T> clazz,
+    final @NotNull Function<Integer, C> collectionFactory
   ) {
-    JsonElement element = jsonObject.get(field);
+    final JsonElement element = this.jsonObject.get(field);
 
     if (element == null) {
       return null;
     }
 
-    JsonArray array = element.getAsJsonArray();
-    C collection = collectionFactory.apply(array.size());
+    final JsonArray array = element.getAsJsonArray();
+    final C collection = collectionFactory.apply(array.size());
 
-    Function<JsonElement, Object> reader = READERS.get(clazz);
+    final Function<JsonElement, Object> reader = READERS.get(clazz);
 
-    for (JsonElement jsonElement : array) {
+    for (final JsonElement jsonElement : array) {
       collection.add((T) reader.apply(jsonElement));
     }
 
@@ -109,34 +113,35 @@ public class JsonReader
 
   @Override
   public <T> @Nullable T readObject(
-    @NotNull String field,
-    ModelCodec.@NotNull Reader<T, JsonObject, JsonReader> reader
+    final @NotNull String field,
+    final @NotNull ModelCodec.Reader<T, JsonObject, JsonReader> reader
   ) {
-    JsonElement element = jsonObject.get(field);
+    final JsonElement element = this.jsonObject.get(field);
 
     if (element == null) {
       return null;
     }
 
-    return reader.deserialize(create(element.getAsJsonObject()));
+    return reader.deserialize(JsonReader.create(element.getAsJsonObject()));
   }
 
   @Override
   public @Nullable <K, V> Map<K, V> readMap(
-    @NotNull String field, @NotNull Function<V, K> keyParser,
-    ModelCodec.@NotNull Reader<V, JsonObject, JsonReader> reader
+    final @NotNull String field,
+    final @NotNull Function<V, K> keyParser,
+    @NotNull ModelCodec.Reader<V, JsonObject, JsonReader> reader
   ) {
-    JsonElement element = jsonObject.get(field);
+    final JsonElement element = this.jsonObject.get(field);
 
     if (element == null) {
       return null;
     }
 
-    JsonArray array = element.getAsJsonArray();
-    Map<K, V> map = new HashMap<>(array.size());
+    final JsonArray array = element.getAsJsonArray();
+    final Map<K, V> map = new HashMap<>(array.size());
 
-    for (JsonElement arrayElement : array) {
-      V value = reader.deserialize(create(arrayElement.getAsJsonObject()));
+    for (final JsonElement arrayElement : array) {
+      final V value = reader.deserialize(JsonReader.create(arrayElement.getAsJsonObject()));
       map.put(keyParser.apply(value), value);
     }
 
@@ -145,62 +150,63 @@ public class JsonReader
 
   @Override
   public <T, C extends Collection<T>> @Nullable C readCollection(
-    @NotNull String field, ModelCodec.@NotNull Reader<T, JsonObject, JsonReader> reader,
-    @NotNull Function<Integer, C> collectionFactory
+    final @NotNull String field,
+    final @NotNull ModelCodec.Reader<T, JsonObject, JsonReader> reader,
+    final @NotNull Function<Integer, C> collectionFactory
   ) {
-    JsonArray array = jsonObject.getAsJsonArray(field);
+    final JsonArray array = this.jsonObject.getAsJsonArray(field);
 
     if (array == null) {
       return null;
     }
 
-    C objects = collectionFactory.apply(array.size());
+    final C objects = collectionFactory.apply(array.size());
 
-    for (JsonElement element : array) {
-      T object = reader.deserialize(create(element.getAsJsonObject()));
+    for (final JsonElement element : array) {
+      final T object = reader.deserialize(create(element.getAsJsonObject()));
       objects.add(object);
     }
 
     return objects;
   }
 
-  public @Nullable UUID readDetailedUuid(@NotNull String field) {
-    JsonElement element = jsonObject.get(field);
+  public @Nullable UUID readDetailedUuid(final @NotNull String field) {
+    final JsonElement element = this.jsonObject.get(field);
 
     if (!(element instanceof JsonObject serializedUuid)) {
       return null;
     }
 
-    return readDetailedUuid(serializedUuid);
+    return this.readDetailedUuid(serializedUuid);
   }
 
   public @Nullable <C extends Collection<UUID>> C readDetailedUuids(
-    @NotNull String field,
-    @NotNull Function<Integer, C> factory
+    final @NotNull String field,
+    final @NotNull Function<Integer, C> factory
   ) {
-    JsonArray array = jsonObject.getAsJsonArray(field);
+    final JsonArray array = this.jsonObject.getAsJsonArray(field);
 
     if (array == null) {
       return null;
     }
 
-    C uuids = factory.apply(array.size());
+    final C uuids = factory.apply(array.size());
 
-    for (JsonElement element : array) {
+    for (final JsonElement element : array) {
       if (!(element instanceof JsonObject serializedUuid)) {
         continue;
       }
 
-      UUID uuid = readDetailedUuid(serializedUuid);
+      final UUID uuid = readDetailedUuid(serializedUuid);
       uuids.add(uuid);
     }
 
     return uuids;
   }
 
-  public @Nullable UUID readDetailedUuid(@NotNull JsonObject serializedUuid) {
-    JsonElement mostSignificantBitsElement = serializedUuid.get("most");
-    JsonElement leastSignificantBitsElement = serializedUuid.get("least");
+  public @Nullable UUID readDetailedUuid(final @NotNull JsonObject serializedUuid) {
+    final JsonElement mostSignificantBitsElement = serializedUuid.get("most");
+    final JsonElement leastSignificantBitsElement = serializedUuid.get("least");
 
     if (mostSignificantBitsElement == null || leastSignificantBitsElement == null) {
       return null;

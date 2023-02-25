@@ -1,48 +1,43 @@
 package es.revengenetwork.storage.gson;
 
 import com.google.gson.Gson;
-import es.revengenetwork.storage.repository.ModelRepository;
-import es.revengenetwork.storage.repository.builder.LayoutModelRepositoryBuilder;
-import es.revengenetwork.storage.repository.CachedModelRepository;
 import es.revengenetwork.storage.model.Model;
+import es.revengenetwork.storage.repository.AsyncModelRepository;
+import es.revengenetwork.storage.repository.CachedModelRepository;
+import es.revengenetwork.storage.repository.ModelRepository;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.Executor;
 
-public class GsonModelRepositoryBuilder<ModelType extends Model>
-  extends LayoutModelRepositoryBuilder<ModelType, GsonModelRepositoryBuilder<ModelType>> {
+@SuppressWarnings("unused")
+public final class GsonModelRepositoryBuilder<ModelType extends Model> {
 
+  private final Class<ModelType> type;
   private Gson gson;
   private Path folderPath;
 
-  protected GsonModelRepositoryBuilder(@NotNull Class<ModelType> type) {
-    super(type);
+  GsonModelRepositoryBuilder(final @NotNull Class<ModelType> type) {
+    this.type = type;
   }
 
   @Contract("_ -> this")
-  public GsonModelRepositoryBuilder<ModelType> gson(@NotNull Gson gson) {
+  public @NotNull GsonModelRepositoryBuilder<ModelType> gson(final @NotNull Gson gson) {
     this.gson = gson;
-    return back();
-  }
-
-  @Contract("_ -> this")
-  public GsonModelRepositoryBuilder<ModelType> folder(@NotNull Path folderPath) {
-    this.folderPath = folderPath;
-    return back();
-  }
-
-  @Override
-  protected GsonModelRepositoryBuilder<ModelType> back() {
     return this;
   }
 
-  @Override
-  public ModelRepository<ModelType> build() {
-    check();
+  @Contract("_ -> this")
+  public @NotNull GsonModelRepositoryBuilder<ModelType> folder(final @NotNull Path folderPath) {
+    this.folderPath = folderPath;
+    return this;
+  }
 
+  @Contract("_ -> new")
+  public @NotNull AsyncModelRepository<ModelType> build(final @NotNull Executor executor) {
     if (Files.notExists(this.folderPath)) {
       try {
         Files.createDirectory(this.folderPath);
@@ -51,12 +46,14 @@ public class GsonModelRepositoryBuilder<ModelType extends Model>
       }
     }
 
-    ModelRepository<ModelType> modelRepository = new GsonModelRepository<>(executor, gson, type, folderPath);
+    return new GsonModelRepository<>(executor, gson, type, folderPath);
+  }
 
-    if (cacheModelRepository == null) {
-      return modelRepository;
-    } else {
-      return new CachedModelRepository<>(executor, cacheModelRepository, modelRepository);
-    }
+  @Contract("_, _ -> new")
+  public @NotNull CachedModelRepository<ModelType> buildCached(
+    final @NotNull Executor executor,
+    final @NotNull ModelRepository<ModelType> cacheModelRepository
+  ) {
+    return new CachedModelRepository<>(executor, cacheModelRepository, this.build(executor));
   }
 }

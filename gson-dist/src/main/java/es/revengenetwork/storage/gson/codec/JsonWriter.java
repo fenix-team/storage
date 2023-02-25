@@ -4,50 +4,59 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelWriter;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 public class JsonWriter
   implements ModelWriter<JsonWriter, JsonObject> {
 
   private final JsonObject jsonObject;
 
-  protected JsonWriter(@NotNull JsonObject jsonObject) {
+  protected JsonWriter(final @NotNull JsonObject jsonObject) {
     this.jsonObject = jsonObject;
   }
 
-  public static JsonWriter create() {
+  @Contract(" -> new")
+  public static @NotNull JsonWriter create() {
     return new JsonWriter(new JsonObject());
   }
 
-  public static JsonWriter create(@NotNull JsonObject jsonObject) {
+  @Contract("_ -> new")
+  public static @NotNull JsonWriter create(final @NotNull JsonObject jsonObject) {
     return new JsonWriter(jsonObject);
   }
 
-  public JsonWriter writeDetailedUuid(@NotNull String key, @Nullable UUID uuid) {
+  @Contract("_, _ -> this")
+  public @NotNull JsonWriter writeDetailedUuid(
+    final @NotNull String key,
+    final @Nullable UUID uuid
+  ) {
     if (uuid == null) {
       return this;
     }
 
-    jsonObject.add(key, writeDetailedUuid(uuid));
+    this.jsonObject.add(key, this.writeDetailedUuid(uuid));
     return this;
   }
 
-  public JsonWriter writeDetailedUuids(
-    @NotNull String key,
-    @Nullable Collection<@NotNull UUID> uuids
+  @Contract("_, _ -> this")
+  public @NotNull JsonWriter writeDetailedUuids(
+    final @NotNull String key,
+    final @Nullable Collection<@NotNull UUID> uuids
   ) {
     if (uuids == null) {
       return this;
     }
 
-    JsonArray array = new JsonArray(uuids.size());
+    final JsonArray array = new JsonArray(uuids.size());
 
-    for (UUID uuid : uuids) {
-      JsonObject serializedUuid = writeDetailedUuid(uuid);
+    for (final UUID uuid : uuids) {
+      final JsonObject serializedUuid = this.writeDetailedUuid(uuid);
 
       if (serializedUuid == null) {
         continue;
@@ -56,92 +65,112 @@ public class JsonWriter
       array.add(serializedUuid);
     }
 
-    jsonObject.add(key, array);
+    this.jsonObject.add(key, array);
     return this;
   }
 
-  public @Nullable JsonObject writeDetailedUuid(@Nullable UUID uuid) {
+  public @Nullable JsonObject writeDetailedUuid(final @Nullable UUID uuid) {
     if (uuid == null) {
       return null;
     }
 
-    JsonObject serializedUuid = new JsonObject();
+    final JsonObject serializedUuid = new JsonObject();
     serializedUuid.addProperty("least", uuid.getLeastSignificantBits());
     serializedUuid.addProperty("most", uuid.getMostSignificantBits());
     return serializedUuid;
   }
 
   @Override
-  public JsonWriter writeThis(@NotNull String key, @Nullable JsonObject value) {
-    jsonObject.add(key, value);
+  @Contract("_, _ -> this")
+  public @NotNull JsonWriter writeThis(
+    final @NotNull String key,
+    final @Nullable JsonObject value
+  ) {
+    this.jsonObject.add(key, value);
     return this;
   }
 
   @Override
-  public JsonWriter writeUuid(@NotNull String field, @Nullable UUID uuid) {
+  @Contract("_, _ -> this")
+  public @NotNull JsonWriter writeUuid(final @NotNull String field, final @Nullable UUID uuid) {
     if (uuid == null) {
       return this;
     }
 
-    jsonObject.addProperty(field, uuid.toString());
+    this.jsonObject.addProperty(field, uuid.toString());
     return this;
   }
 
   @Override
-  public JsonWriter writeString(@NotNull String field, @Nullable String value) {
+  @Contract("_, _ -> this")
+  public @NotNull JsonWriter writeString(
+    final @NotNull String field,
+    final @Nullable String value
+  ) {
     if (value == null) {
       return this;
     }
 
-    jsonObject.addProperty(field, value);
+    this.jsonObject.addProperty(field, value);
     return this;
   }
 
   @Override
-  public JsonWriter writeNumber(@NotNull String field, @Nullable Number value) {
+  @Contract("_, _ -> this")
+  public @NotNull JsonWriter writeNumber(
+    final @NotNull String field,
+    final @Nullable Number value
+  ) {
     if (value == null) {
       return this;
     }
 
-    jsonObject.addProperty(field, value);
+    this.jsonObject.addProperty(field, value);
     return this;
   }
 
   @Override
-  public JsonWriter writeBoolean(@NotNull String field, @Nullable Boolean value) {
+  @Contract("_, _ -> this")
+  public @NotNull JsonWriter writeBoolean(
+    final @NotNull String field,
+    final @Nullable Boolean value
+  ) {
     if (value == null) {
       return this;
     }
 
-    jsonObject.addProperty(field, value);
+    this.jsonObject.addProperty(field, value);
     return this;
   }
 
   @Override
-  public <T> JsonWriter writeObject(
-    @NotNull String field, @Nullable T child,
-    ModelCodec.@NotNull Writer<T, JsonObject> writer
+  @Contract("_, _, _ -> this")
+  public <T> @NotNull JsonWriter writeObject(
+    final @NotNull String field,
+    final @Nullable T child,
+    final ModelCodec.@NotNull Writer<T, JsonObject> writer
   ) {
     if (child == null) {
       return this;
     }
 
-    jsonObject.add(field, writer.serialize(child));
+    this.jsonObject.add(field, writer.serialize(child));
     return this;
   }
 
   @Override
-  public <T> JsonWriter writeRawCollection(
-    @NotNull final String field,
-    @Nullable final Collection<T> children
+  @Contract("_, _ -> this")
+  public <T> @NotNull JsonWriter writeRawCollection(
+    final @NotNull String field,
+    final @Nullable Collection<T> children
   ) {
     if (children == null) {
       return this;
     }
 
-    JsonArray array = new JsonArray(children.size());
+    final JsonArray array = new JsonArray(children.size());
 
-    for (T child : children) {
+    for (final T child : children) {
       if (child == null) {
         continue;
       }
@@ -149,14 +178,16 @@ public class JsonWriter
       array.add(child.toString());
     }
 
-    jsonObject.add(field, array);
+    this.jsonObject.add(field, array);
     return this;
   }
 
   @Override
-  public <T> JsonWriter writeCollection(
-    @NotNull String field, @Nullable Collection<T> children,
-    ModelCodec.@NotNull Writer<T, JsonObject> writer
+  @Contract("_, _, _ -> this")
+  public <T> @NotNull JsonWriter writeCollection(
+    final @NotNull String field,
+    final @Nullable Collection<T> children,
+    final @NotNull ModelCodec.Writer<T, JsonObject> writer
   ) {
     if (children == null) {
       return this;
@@ -173,7 +204,8 @@ public class JsonWriter
   }
 
   @Override
-  public JsonWriter writeObject(@NotNull String field, Object value) {
+  @Contract("_, _ -> this")
+  public @NotNull JsonWriter writeObject(final @NotNull String field, final Object value) {
     return this;
   }
 

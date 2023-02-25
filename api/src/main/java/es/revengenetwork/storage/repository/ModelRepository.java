@@ -12,34 +12,34 @@ public interface ModelRepository<ModelType extends Model> {
 
   String ID_FIELD = "id";
 
-  @Nullable ModelType findSync(@NotNull String id);
+  @Nullable ModelType findSync(final @NotNull String id);
 
   <C extends Collection<ModelType>> @Nullable C findSync(
-    @NotNull String field,
-    @NotNull String value,
-    @NotNull Function<Integer, C> factory
+    final @NotNull String field,
+    final @NotNull String value,
+    final @NotNull Function<Integer, C> factory
   );
 
   @Nullable Collection<String> findIdsSync();
 
   default <C extends Collection<ModelType>> @Nullable C findAllSync(
-    @NotNull Function<Integer, C> factory
+    final @NotNull Function<Integer, C> factory
   ) {
     return findAllSync(modelType -> { }, factory);
   }
 
   <C extends Collection<ModelType>> @Nullable C findAllSync(
-    @NotNull Consumer<ModelType> postLoadAction,
-    @NotNull Function<Integer, C> factory
+    final @NotNull Consumer<ModelType> postLoadAction,
+    final @NotNull Function<Integer, C> factory
   );
 
-  boolean existsSync(@NotNull String id);
+  boolean existsSync(final @NotNull String id);
 
-  void saveSync(@NotNull ModelType model);
+  void saveSync(final @NotNull ModelType model);
 
-  default boolean deleteSync(@NotNull ModelType model) {
+  default boolean deleteSync(final @NotNull ModelType model) {
     return deleteSync(model.getId());
   }
 
-  boolean deleteSync(@NotNull String id);
+  boolean deleteSync(final @NotNull String id);
 }

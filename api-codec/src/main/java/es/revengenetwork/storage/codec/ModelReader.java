@@ -5,20 +5,19 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
+@SuppressWarnings("unused")
 public interface ModelReader<This extends ModelReader<This, ReadType>, ReadType> {
 
   @NotNull ReadType getRaw();
 
-  @Nullable ReadType readThis(@NotNull String field);
+  @Nullable ReadType readThis(final @NotNull String field);
 
-  default @Nullable UUID readUuid(@NotNull String field) {
-    String uuidString = readString(field);
+  default @Nullable UUID readUuid(final @NotNull String field) {
+    final String uuidString = readString(field);
 
     if (uuidString == null) {
       return null;
@@ -27,12 +26,8 @@ public interface ModelReader<This extends ModelReader<This, ReadType>, ReadType>
     return UUID.fromString(uuidString);
   }
 
-  default <T> @Nullable Set<T> readSet(@NotNull String field, @NotNull Class<T> clazz) {
-    return readRawCollection(field, clazz, HashSet::new);
-  }
-
-  default @Nullable Date readDate(@NotNull String field) {
-    Number value = readNumber(field);
+  default @Nullable Date readDate(final @NotNull String field) {
+    final Number value = readNumber(field);
 
     if (value == null) {
       return null;
@@ -41,31 +36,32 @@ public interface ModelReader<This extends ModelReader<This, ReadType>, ReadType>
     return new Date(value.longValue());
   }
 
-  @Nullable String readString(@NotNull String field);
+  @Nullable String readString(final @NotNull String field);
 
-  @Nullable Number readNumber(@NotNull String field);
+  @Nullable Number readNumber(final @NotNull String field);
 
-  @Nullable Boolean readBoolean(@NotNull String field);
+  @Nullable Boolean readBoolean(final @NotNull String field);
 
   <T, C extends Collection<T>> @Nullable C readRawCollection(
-    @NotNull String field, @NotNull Class<T> clazz,
-    @NotNull Function<Integer, C> collectionFactory
+    final @NotNull String field,
+    final @NotNull Class<T> clazz,
+    final @NotNull Function<Integer, C> collectionFactory
   );
 
   <T> @Nullable T readObject(
-    @NotNull String field,
-    @NotNull ModelCodec.Reader<T, ReadType, This> reader
+    final @NotNull String field,
+    final @NotNull ModelCodec.Reader<T, ReadType, This> reader
   );
 
   <K, V> @Nullable Map<K, V> readMap(
-    @NotNull String field,
-    @NotNull Function<V, K> keyParser,
-    @NotNull ModelCodec.Reader<V, ReadType, This> reader
+    final @NotNull String field,
+    final @NotNull Function<V, K> keyParser,
+    final @NotNull ModelCodec.Reader<V, ReadType, This> reader
   );
 
   <T, C extends Collection<T>> @Nullable C readCollection(
-    @NotNull String field,
-    @NotNull ModelCodec.Reader<T, ReadType, This> reader,
-    @NotNull Function<Integer, C> collectionFactory
+    final @NotNull String field,
+    final @NotNull ModelCodec.Reader<T, ReadType, This> reader,
+    final @NotNull Function<Integer, C> collectionFactory
   );
 }

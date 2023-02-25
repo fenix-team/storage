@@ -6,6 +6,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
+@SuppressWarnings("unused")
 public record JedisInstance(@NotNull Jedis listenerConnection, @NotNull JedisPool jedisPool) {
 
   @Contract(" -> new")
@@ -26,38 +27,38 @@ public record JedisInstance(@NotNull Jedis listenerConnection, @NotNull JedisPoo
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder setHost(@NotNull String host) {
+    public @NotNull Builder setHost(final @NotNull String host) {
       this.host = host;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder setPort(int port) {
+    public @NotNull Builder setPort(final int port) {
       this.port = port;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder setPassword(@NotNull String password) {
+    public @NotNull Builder setPassword(final @NotNull String password) {
       this.password = password;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder setTimeout(int timeout) {
+    public @NotNull Builder setTimeout(final int timeout) {
       this.timeout = timeout;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder setConfig(@NotNull JedisPoolConfig config) {
+    public @NotNull Builder setConfig(final @NotNull JedisPoolConfig config) {
       this.config = config;
       return this;
     }
 
     @Contract(" -> new")
     public @NotNull JedisInstance build() {
-      Jedis jedis = new Jedis(host, port, timeout);
+      final Jedis jedis = new Jedis(host, port, timeout);
 
       JedisPool jedisPool;
       if (password == null || password.trim()

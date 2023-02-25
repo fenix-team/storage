@@ -9,32 +9,34 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public interface AsyncModelRepository<ModelType extends Model> {
+@SuppressWarnings("unused")
+public interface AsyncModelRepository<ModelType extends Model>
+  extends ModelRepository<ModelType> {
 
-  @NotNull CompletableFuture<@Nullable ModelType> find(@NotNull String id);
+  @NotNull CompletableFuture<@Nullable ModelType> find(final @NotNull String id);
 
   <C extends Collection<ModelType>> @NotNull CompletableFuture<@Nullable C> find(
-    @NotNull String field,
-    @NotNull String value,
-    @NotNull Function<Integer, C> factory
+    final @NotNull String field,
+    final @NotNull String value,
+    final @NotNull Function<Integer, C> factory
   );
 
   @NotNull CompletableFuture<@Nullable Collection<String>> findIds();
 
   <C extends Collection<ModelType>> @NotNull CompletableFuture<@Nullable C> findAll(
-    @NotNull Function<Integer, C> factory
+    final @NotNull Function<Integer, C> factory
   );
 
   <C extends Collection<ModelType>> @NotNull CompletableFuture<@Nullable C> findAll(
-    @NotNull Consumer<ModelType> postLoadAction,
-    @NotNull Function<Integer, C> factory
+    final @NotNull Consumer<ModelType> postLoadAction,
+    final @NotNull Function<Integer, C> factory
   );
 
-  @NotNull CompletableFuture<@NotNull Boolean> exists(@NotNull String id);
+  @NotNull CompletableFuture<@NotNull Boolean> exists(final @NotNull String id);
 
-  @NotNull CompletableFuture<Void> save(@NotNull ModelType model);
+  @NotNull CompletableFuture<Void> save(final @NotNull ModelType model);
 
-  @NotNull CompletableFuture<@NotNull Boolean> delete(@NotNull ModelType model);
+  @NotNull CompletableFuture<@NotNull Boolean> delete(final @NotNull ModelType model);
 
-  @NotNull CompletableFuture<@NotNull Boolean> delete(@NotNull String id);
+  @NotNull CompletableFuture<@NotNull Boolean> delete(final @NotNull String id);
 }

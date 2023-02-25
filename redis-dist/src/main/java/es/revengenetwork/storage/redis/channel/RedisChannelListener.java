@@ -2,9 +2,14 @@ package es.revengenetwork.storage.redis.channel;
 
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public interface RedisChannelListener<T> {
 
-  void listen(@NotNull RedisChannel<T> channel, @NotNull String server, @NotNull T object);
+  void listen(
+    final @NotNull RedisChannel<T> channel,
+    final @NotNull String server,
+    final @NotNull T object
+  );
 
-  default void send(@NotNull RedisChannel<T> channel, @NotNull T object) { }
+  default void send(final @NotNull RedisChannel<T> channel, final @NotNull T object) { }
 }

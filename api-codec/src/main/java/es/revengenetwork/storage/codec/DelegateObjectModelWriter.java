@@ -1,5 +1,6 @@
 package es.revengenetwork.storage.codec;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -8,72 +9,84 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-public abstract class DelegateObjectModelWriter<This extends ModelWriter<This, ReadType>, ReadType>
-  implements ModelWriter<This, ReadType> {
+public abstract class DelegateObjectModelWriter<This extends ModelWriter<This, WriteType>,
+                                                 WriteType>
+  implements ModelWriter<This, WriteType> {
 
   @Override
-  public This writeThis(@NotNull String key, @Nullable ReadType value) {
-    return writeObject(key, value);
+  @Contract("_, _ -> this")
+  public @NotNull This writeThis(final @NotNull String key, final @Nullable WriteType value) {
+    return this.writeObject(key, value);
   }
 
   @Override
-  public This writeUuid(@NotNull String field, @Nullable UUID uuid) {
+  @Contract("_, _ -> this")
+  public @NotNull This writeUuid(final @NotNull String field, final @Nullable UUID uuid) {
     if (uuid == null) {
-      return writeString(field, null);
+      return this.writeString(field, null);
     }
 
-    return writeObject(field, uuid.toString());
+    return this.writeObject(field, uuid.toString());
   }
 
   @Override
-  public This writeString(@NotNull String field, @Nullable String value) {
-    return writeObject(field, value);
+  @Contract("_, _ -> this")
+  public @NotNull This writeString(final @NotNull String field, final @Nullable String value) {
+    return this.writeObject(field, value);
   }
 
   @Override
-  public This writeNumber(@NotNull String field, @Nullable Number value) {
-    return writeObject(field, value);
+  @Contract("_, _ -> this")
+  public @NotNull This writeNumber(final @NotNull String field, final @Nullable Number value) {
+    return this.writeObject(field, value);
   }
 
   @Override
-  public This writeBoolean(@NotNull String field, @Nullable Boolean value) {
-    return writeObject(field, value);
+  @Contract("_, _ -> this")
+  public @NotNull This writeBoolean(final @NotNull String field, final @Nullable Boolean value) {
+    return this.writeObject(field, value);
   }
 
   @Override
-  public <T> This writeObject(
-    @NotNull String field, @Nullable T child,
-    @NotNull ModelCodec.Writer<T, ReadType> writer
+  @Contract("_, _, _ -> this")
+  public <T> @NotNull This writeObject(
+    final @NotNull String field,
+    final @Nullable T child,
+    final @NotNull ModelCodec.Writer<T, WriteType> writer
   ) {
     if (child == null) {
-      return writeObject(field, null);
+      return this.writeObject(field, null);
     }
 
-    return writeObject(field, writer.serialize(child));
+    return this.writeObject(field, writer.serialize(child));
   }
 
   @Override
-  public <T> This writeRawCollection(
-    @NotNull final String field,
-    @Nullable final Collection<T> children
+  @Contract("_, _ -> this")
+  public <T> @NotNull This writeRawCollection(
+    final @NotNull String field,
+    final @Nullable Collection<T> children
   ) {
-    return writeObject(field, children);
+    return this.writeObject(field, children);
   }
 
   @Override
-  public <T> This writeCollection(
-    @NotNull String field, @Nullable Collection<T> children,
-    @NotNull ModelCodec.Writer<T, ReadType> writer
+  @Contract("_, _, _ -> this")
+  public <T> @NotNull This writeCollection(
+    final @NotNull String field,
+    final @Nullable Collection<T> children,
+    final @NotNull ModelCodec.Writer<T, WriteType> writer
   ) {
     if (children == null) {
-      return writeObject(field, null);
+      return this.writeObject(field, null);
     }
 
-    List<ReadType> documents = new ArrayList<>(children.size());
-    for (T child : children) {
+    final List<WriteType> documents = new ArrayList<>(children.size());
+
+    for (final T child : children) {
       documents.add(writer.serialize(child));
     }
 
-    return writeObject(field, documents);
+    return this.writeObject(field, documents);
   }
 }

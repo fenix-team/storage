@@ -3,17 +3,15 @@ package es.revengenetwork.storage.mongo.codec;
 import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * It reads a document and converts it into a Java object
- */
+@SuppressWarnings("unused")
 public class DocumentReader
   extends AbstractDocumentReader<DocumentReader> {
 
-  protected DocumentReader(@NotNull Document document) {
+  protected DocumentReader(final @NotNull Document document) {
     super(document, DocumentReader::create);
   }
 
-  public static DocumentReader create(@NotNull Document document) {
+  public static DocumentReader create(final @NotNull Document document) {
     return new DocumentReader(document);
   }
 }

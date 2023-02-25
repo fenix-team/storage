@@ -19,8 +19,10 @@ public class RedisSubChannelPubsub
   private final Map<String, RedisChannel<?>> channels;
 
   public RedisSubChannelPubsub(
-    @NotNull String parentChannel, @NotNull String serverId,
-    @NotNull Gson gson, @NotNull Map<String, RedisChannel<?>> channels
+    final @NotNull String parentChannel,
+    final @NotNull String serverId,
+    final @NotNull Gson gson,
+    final @NotNull Map<String, RedisChannel<?>> channels
   ) {
     this.parentChannel = parentChannel;
     this.serverId = serverId;
@@ -29,17 +31,17 @@ public class RedisSubChannelPubsub
   }
 
   @Override
-  public void onMessage(String channel, String message) {
+  public void onMessage(final @NotNull String channel, final @NotNull String message) {
     // we don't care if the message isn't from the parent channel
-    if (!channel.equals(parentChannel)) {
+    if (!channel.equals(this.parentChannel)) {
       return;
     }
 
     // we can parse the message as a json object
-    JsonObject jsonMessage = JsonParser.parseString(message)
+    final JsonObject jsonMessage = JsonParser.parseString(message)
                                .getAsJsonObject();
 
-    String serverId = jsonMessage.get("server")
+    final String serverId = jsonMessage.get("server")
                         .getAsString();
 
     // if the message is from the server we're listening to
@@ -47,10 +49,10 @@ public class RedisSubChannelPubsub
       return;
     }
 
-    JsonElement targetServerElement = jsonMessage.get("targetServer");
+    final JsonElement targetServerElement = jsonMessage.get("targetServer");
 
     if (targetServerElement != null) {
-      String targetServer = targetServerElement.getAsString();
+      final String targetServer = targetServerElement.getAsString();
 
       // if the message isn't for this server, ignore it
       if (!targetServer.equals(this.serverId)) {
@@ -58,20 +60,20 @@ public class RedisSubChannelPubsub
       }
     }
 
-    String subChannel = jsonMessage.get("channel")
+    final String subChannel = jsonMessage.get("channel")
                           .getAsString();
 
     @SuppressWarnings("unchecked")
-    RedisChannel<Object> channelObject =
-      (RedisChannel<Object>) channels.get(subChannel);
+    final RedisChannel<Object> channelObject =
+      (RedisChannel<Object>) this.channels.get(subChannel);
 
     // if the channel doesn't exist, we can't do anything
     if (channelObject == null) {
       return;
     }
 
-    JsonElement object = jsonMessage.get("message");
-    Object deserializedObject = gson.fromJson(object, channelObject.getType());
+    final JsonElement object = jsonMessage.get("message");
+    final Object deserializedObject = this.gson.fromJson(object, channelObject.getType());
     channelObject.listen(serverId, deserializedObject);
   }
 }

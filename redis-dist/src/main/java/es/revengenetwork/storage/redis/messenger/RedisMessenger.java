@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
+@SuppressWarnings("unused")
 public class RedisMessenger {
 
   private final String parentChannel;
@@ -28,9 +29,11 @@ public class RedisMessenger {
   private final JedisPubSub pubSub;
 
   public RedisMessenger(
-    @NotNull String parentChannel, @NotNull String serverId,
-    @NotNull Executor executor, Gson gson,
-    @NotNull JedisInstance jedisInstance
+    final @NotNull String parentChannel,
+    final @NotNull String serverId,
+    final @NotNull Executor executor,
+    final @NotNull Gson gson,
+    final @NotNull JedisInstance jedisInstance
   ) {
     this.parentChannel = parentChannel;
     this.serverId = serverId;
@@ -38,28 +41,39 @@ public class RedisMessenger {
     this.jedisPool = jedisInstance.jedisPool();
 
     this.channels = new ConcurrentHashMap<>();
-    pubSub = new RedisSubChannelPubsub(parentChannel, serverId, gson, channels);
+    this.pubSub = new RedisSubChannelPubsub(parentChannel, serverId, gson, channels);
 
-    executor.execute(() ->
-                       jedisInstance.listenerConnection()
-                         .subscribe(
-                           pubSub, parentChannel
-                         ));
+    //noinspection resource
+    executor.execute(() -> jedisInstance.listenerConnection()
+                             .subscribe(pubSub, parentChannel));
   }
 
-  @Contract(pure = true, value = "_, _ -> new")
-  public <T> @NotNull RedisChannel<T> getChannel(@NotNull String name, @NotNull Class<T> type) {
-    return getChannel(name, TypeToken.get(type));
+  @Contract(value = "_, _ -> new")
+  public <T> @NotNull RedisChannel<T> getChannel(
+    final @NotNull String name,
+    final @NotNull Class<T> type
+  ) {
+    return this.getChannel(name, TypeToken.get(type));
   }
 
-  public <T> @NotNull RedisChannel<T> getChannel(@NotNull String name, @NotNull TypeToken<T> type) {
+  public <T> @NotNull RedisChannel<T> getChannel(
+    final @NotNull String name,
+    final @NotNull TypeToken<T> type
+  ) {
     @SuppressWarnings("unchecked")
-    RedisChannel<T> channel = (RedisChannel<T>) channels.get(name);
-    Type rawType = type.getType();
+    final RedisChannel<T> channel = (RedisChannel<T>) this.channels.get(name);
+    final Type rawType = type.getType();
 
     if (channel == null) {
-      channel = new RedisChannel<>(parentChannel, serverId, name, rawType, jedisPool, gson);
-      channels.put(name, channel);
+      final RedisChannel<T> newChannel = new RedisChannel<>(
+        parentChannel,
+        serverId,
+        name,
+        rawType,
+        jedisPool,
+        gson);
+      this.channels.put(name, newChannel);
+      return newChannel;
     } else {
       if (!channel.getType()
              .equals(rawType)) {
@@ -71,10 +85,10 @@ public class RedisMessenger {
   }
 
   public void close() {
-    channels.clear();
+    this.channels.clear();
 
-    if (pubSub.isSubscribed()) {
-      pubSub.unsubscribe();
+    if (this.pubSub.isSubscribed()) {
+      this.pubSub.unsubscribe();
     }
   }
 }

@@ -6,11 +6,7 @@ import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 public class AbstractDocumentReader<This extends ModelReader<This, Document>>
@@ -20,8 +16,8 @@ public class AbstractDocumentReader<This extends ModelReader<This, Document>>
   protected final Function<Document, This> readerFactory;
 
   protected AbstractDocumentReader(
-    @NotNull Document document,
-    @NotNull Function<Document, This> readerFactory
+    final @NotNull Document document,
+    final @NotNull Function<Document, This> readerFactory
   ) {
     this.document = document;
     this.readerFactory = readerFactory;
@@ -29,43 +25,44 @@ public class AbstractDocumentReader<This extends ModelReader<This, Document>>
 
   @Override
   public @NotNull Document getRaw() {
-    return document;
+    return this.document;
   }
 
   @Override
-  public @Nullable Document readThis(@NotNull String field) {
-    return document.get(field, Document.class);
+  public @Nullable Document readThis(final @NotNull String field) {
+    return this.document.get(field, Document.class);
   }
 
   @Override
-  public String readString(@NotNull String field) {
-    return document.getString(field);
+  public @Nullable String readString(final @NotNull String field) {
+    return this.document.getString(field);
   }
 
   @Override
-  public Number readNumber(@NotNull String field) {
-    return (Number) document.get(field);
+  public @Nullable Number readNumber(final @NotNull String field) {
+    return (Number) this.document.get(field);
   }
 
   @Override
-  public Boolean readBoolean(@NotNull String field) {
-    return document.getBoolean(field);
+  public @Nullable Boolean readBoolean(final @NotNull String field) {
+    return this.document.getBoolean(field);
   }
 
   @Override
   public <T, C extends Collection<T>> @Nullable C readRawCollection(
-    @NotNull String field, @NotNull Class<T> clazz,
-    @NotNull Function<Integer, C> collectionFactory
+    final @NotNull String field,
+    final @NotNull Class<T> clazz,
+    final @NotNull Function<Integer, C> collectionFactory
   ) {
-    List<?> value = document.get(field, List.class);
+    final List<?> value = this.document.get(field, List.class);
 
     if (value == null) {
       return null;
     }
 
-    C collection = collectionFactory.apply(value.size());
+    final C collection = collectionFactory.apply(value.size());
 
-    for (Object object : value) {
+    for (final Object object : value) {
       collection.add(clazz.cast(object));
     }
 
@@ -74,10 +71,10 @@ public class AbstractDocumentReader<This extends ModelReader<This, Document>>
 
   @Override
   public <T> @Nullable T readObject(
-    @NotNull String field,
-    @NotNull ModelCodec.Reader<T, Document, This> reader
+    final @NotNull String field,
+    final @NotNull ModelCodec.Reader<T, Document, This> reader
   ) {
-    Document child = document.get(field, Document.class);
+    final Document child = this.document.get(field, Document.class);
 
     if (child == null) {
       return null;
@@ -87,20 +84,21 @@ public class AbstractDocumentReader<This extends ModelReader<This, Document>>
   }
 
   @Override
-  public <K, V> Map<K, V> readMap(
-    @NotNull String field, @NotNull Function<V, K> keyParser,
-    @NotNull ModelCodec.Reader<V, Document, This> reader
+  public <K, V> @Nullable Map<K, V> readMap(
+    final @NotNull String field,
+    final @NotNull Function<V, K> keyParser,
+    final @NotNull ModelCodec.Reader<V, Document, This> reader
   ) {
-    List<Document> documents = readRawCollection(field, Document.class, ArrayList::new);
+    final List<Document> documents = this.readRawCollection(field, Document.class, ArrayList::new);
 
     if (documents == null) {
       return null;
     }
 
-    Map<K, V> map = new HashMap<>(documents.size());
+    final Map<K, V> map = new HashMap<>(documents.size());
 
-    for (Document document : documents) {
-      V value = reader.deserialize(readerFactory.apply(document));
+    for (final Document document : documents) {
+      final V value = reader.deserialize(readerFactory.apply(document));
       map.put(keyParser.apply(value), value);
     }
 
@@ -109,19 +107,19 @@ public class AbstractDocumentReader<This extends ModelReader<This, Document>>
 
   @Override
   public <T, C extends Collection<T>> @Nullable C readCollection(
-    @NotNull String field,
-    @NotNull ModelCodec.Reader<T, Document, This> reader,
-    @NotNull Function<Integer, C> collectionFactory
+    final @NotNull String field,
+    final @NotNull ModelCodec.Reader<T, Document, This> reader,
+    final @NotNull Function<Integer, C> collectionFactory
   ) {
-    List<Document> documents = readRawCollection(field, Document.class, ArrayList::new);
+    final List<Document> documents = this.readRawCollection(field, Document.class, ArrayList::new);
 
     if (documents == null) {
       return null;
     }
 
-    C children = collectionFactory.apply(documents.size());
+    final C children = collectionFactory.apply(documents.size());
 
-    for (Document document : documents) {
+    for (final Document document : documents) {
       children.add(reader.deserialize(readerFactory.apply(document)));
     }
 

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.AbstractAsyncModelRepository;
 import es.revengenetwork.storage.repository.ModelRepository;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,10 +22,14 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unused")
 public class GsonModelRepository<ModelType extends Model>
   extends AbstractAsyncModelRepository<ModelType> {
 
-  public static <T extends Model> GsonModelRepositoryBuilder<T> builder(Class<T> type) {
+  @Contract("_ -> new")
+  public static <T extends Model> @NotNull GsonModelRepositoryBuilder<T> builder(
+    final @NotNull Class<T> type
+  ) {
     return new GsonModelRepositoryBuilder<>(type);
   }
 
@@ -33,10 +38,10 @@ public class GsonModelRepository<ModelType extends Model>
   private final Path folderPath;
 
   protected GsonModelRepository(
-    @NotNull Executor executor,
-    @NotNull Gson gson,
-    @NotNull Class<ModelType> modelType,
-    @NotNull Path folderPath
+    final @NotNull Executor executor,
+    final @NotNull Gson gson,
+    final @NotNull Class<ModelType> modelType,
+    final @NotNull Path folderPath
   ) {
     super(executor);
     this.gson = gson;
@@ -45,15 +50,15 @@ public class GsonModelRepository<ModelType extends Model>
   }
 
   @Override
-  public @Nullable ModelType findSync(@NotNull String id) {
+  public @Nullable ModelType findSync(final @NotNull String id) {
     return internalFind(resolveChild(id));
   }
 
   @Override
   public <C extends Collection<ModelType>> @Nullable C findSync(
-    @NotNull final String field,
-    @NotNull final String value,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull String field,
+    final @NotNull String value,
+    final @NotNull Function<Integer, C> factory
   ) {
     if (!field.equals(ModelRepository.ID_FIELD)) {
       throw new IllegalArgumentException("Only ID field is supported for JSON find");
@@ -85,8 +90,8 @@ public class GsonModelRepository<ModelType extends Model>
 
   @Override
   public <C extends Collection<ModelType>> @Nullable C findAllSync(
-    @NotNull final Consumer<ModelType> postLoadAction,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull Consumer<ModelType> postLoadAction,
+    final @NotNull Function<Integer, C> factory
   ) {
     try (Stream<Path> walk = Files.walk(this.folderPath, 1)) {
       final C foundModels = factory.apply(1);
@@ -106,7 +111,7 @@ public class GsonModelRepository<ModelType extends Model>
   }
 
   @Override
-  public boolean existsSync(@NotNull final String id) {
+  public boolean existsSync(final @NotNull String id) {
     return Files.exists(this.resolveChild(id));
   }
 

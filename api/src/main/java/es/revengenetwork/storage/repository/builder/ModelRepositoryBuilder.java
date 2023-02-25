@@ -1,20 +1,25 @@
 package es.revengenetwork.storage.repository.builder;
 
-import es.revengenetwork.storage.repository.ModelRepository;
 import es.revengenetwork.storage.model.Model;
+import es.revengenetwork.storage.repository.AsyncModelRepository;
+import es.revengenetwork.storage.repository.CachedModelRepository;
+import es.revengenetwork.storage.repository.ModelRepository;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Executor;
 
-public interface ModelRepositoryBuilder<ModelType extends Model> {
+@SuppressWarnings("unused")
+public abstract class ModelRepositoryBuilder<ModelType extends Model> {
 
-  @Contract("_ -> this")
-  ModelRepositoryBuilder<ModelType> executor(@NotNull Executor executor);
+  @Contract("_ -> new")
+  public abstract @NotNull AsyncModelRepository<ModelType> build(final @NotNull Executor executor);
 
-  @Contract("_ -> this")
-  ModelRepositoryBuilder<ModelType> cachedService(@NotNull ModelRepository<ModelType> cachedService);
-
-  @Contract(" -> new")
-  ModelRepository<ModelType> build();
+  @Contract("_, _ -> new")
+  public @NotNull CachedModelRepository<ModelType> buildCached(
+    final @NotNull Executor executor,
+    final @NotNull ModelRepository<ModelType> cacheModelRepository
+  ) {
+    return new CachedModelRepository<>(executor, cacheModelRepository, this.build(executor));
+  }
 }

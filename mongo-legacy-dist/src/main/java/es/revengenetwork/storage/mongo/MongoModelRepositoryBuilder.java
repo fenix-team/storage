@@ -2,20 +2,22 @@ package es.revengenetwork.storage.mongo;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import es.revengenetwork.storage.repository.ModelRepository;
-import es.revengenetwork.storage.repository.builder.LayoutModelRepositoryBuilder;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
-import es.revengenetwork.storage.repository.CachedModelRepository;
 import es.revengenetwork.storage.model.Model;
+import es.revengenetwork.storage.repository.AsyncModelRepository;
+import es.revengenetwork.storage.repository.builder.ModelRepositoryBuilder;
 import org.bson.Document;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 
-public class MongoModelRepositoryBuilder<ModelType extends Model, Reader extends ModelReader<Reader, Document>>
-  extends LayoutModelRepositoryBuilder<ModelType, MongoModelRepositoryBuilder<ModelType, Reader>> {
+@SuppressWarnings("unused")
+public class MongoModelRepositoryBuilder<ModelType extends Model,
+                                          Reader extends ModelReader<Reader, Document>>
+  extends ModelRepositoryBuilder<ModelType> {
 
   private MongoDatabase database;
   private String collectionName;
@@ -23,61 +25,54 @@ public class MongoModelRepositoryBuilder<ModelType extends Model, Reader extends
   private ModelCodec.Writer<ModelType, Document> modelWriter;
   private ModelCodec.Reader<ModelType, Document, Reader> modelReader;
 
-  protected MongoModelRepositoryBuilder(@NotNull Class<ModelType> type) {
-    super(type);
+  protected MongoModelRepositoryBuilder() {
   }
 
   @Contract("_ -> this")
-  public MongoModelRepositoryBuilder<ModelType, Reader> database(@NotNull MongoDatabase database) {
+  public @NotNull MongoModelRepositoryBuilder<ModelType, Reader> database(final @NotNull MongoDatabase database) {
     this.database = database;
     return this;
   }
 
   @Contract("_ -> this")
-  public MongoModelRepositoryBuilder<ModelType, Reader> modelReader(
-    @NotNull ModelCodec.Reader<ModelType, Document,
-                                Reader> modelReader
+  public @NotNull MongoModelRepositoryBuilder<ModelType, Reader> modelReader(
+    final @NotNull ModelCodec.Reader<ModelType, Document, Reader> modelReader
   ) {
     this.modelReader = modelReader;
     return this;
   }
 
   @Contract("_ -> this")
-  public MongoModelRepositoryBuilder<ModelType, Reader> modelWriter(@NotNull ModelCodec.Writer<ModelType, Document> modelWriter) {
+  public @NotNull MongoModelRepositoryBuilder<ModelType, Reader> modelWriter(
+    final @NotNull ModelCodec.Writer<ModelType, Document> modelWriter
+  ) {
     this.modelWriter = modelWriter;
     return this;
   }
 
   @Contract("_ -> this")
-  public MongoModelRepositoryBuilder<ModelType, Reader> readerFactory(@NotNull Function<Document, Reader> readerFactory) {
+  public @NotNull MongoModelRepositoryBuilder<ModelType, Reader> readerFactory(
+    final @NotNull Function<Document, Reader> readerFactory
+  ) {
     this.readerFactory = readerFactory;
     return this;
   }
 
   @Contract("_ -> this")
-  public MongoModelRepositoryBuilder<ModelType, Reader> collection(@NotNull String collection) {
+  public @NotNull MongoModelRepositoryBuilder<ModelType, Reader> collection(final @NotNull String collection) {
     this.collectionName = collection;
     return this;
   }
 
-  @Override
-  public ModelRepository<ModelType> build() {
-    check();
-    MongoCollection<Document> collection =
-      database.getCollection(collectionName);
+  @Contract("_ -> new")
+  public @NotNull AsyncModelRepository<ModelType> build(final @NotNull Executor executor) {
+    final MongoCollection<Document> collection = database.getCollection(collectionName);
 
-    MongoModelRepository<ModelType, Reader> modelService =
-      new MongoModelRepository<>(executor, collection, readerFactory, modelWriter, modelReader);
-
-    if (cacheModelRepository == null) {
-      return modelService;
-    } else {
-      return new CachedModelRepository<>(executor, cacheModelRepository, modelService);
-    }
-  }
-
-  @Override
-  protected MongoModelRepositoryBuilder<ModelType, Reader> back() {
-    return this;
+    return new MongoModelRepository<>(
+      executor,
+      collection,
+      readerFactory,
+      modelWriter,
+      modelReader);
   }
 }

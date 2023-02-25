@@ -2,6 +2,7 @@ package es.revengenetwork.storage.mongo;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.ReplaceOptions;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
@@ -19,7 +20,9 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class MongoModelRepository<ModelType extends Model, Reader extends ModelReader<Reader, Document>>
+@SuppressWarnings("unused")
+public class MongoModelRepository<ModelType extends Model, Reader extends ModelReader<Reader,
+                                                                                       Document>>
   extends AbstractAsyncModelRepository<ModelType> {
 
   public static final String ID_FIELD = "_id";
@@ -37,26 +40,22 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
     final @NotNull ModelCodec.Reader<ModelType, Document, Reader> modelReader
   ) {
     super(executor);
-
     this.mongoCollection = mongoCollection;
     this.readerFactory = readerFactory;
     this.writer = writer;
     this.modelReader = modelReader;
   }
 
-  @Contract(pure = true, value = "_, _ -> new")
+  @Contract(value = " -> new")
   public static <T extends Model, Reader extends ModelReader<Reader, Document>>
-  @NotNull MongoModelRepositoryBuilder<T, Reader> builder(
-    final @NotNull Class<T> type,
-    final @NotNull Class<Reader> ignoredReaderType
-  ) {
-    return new MongoModelRepositoryBuilder<>(type);
+  @NotNull MongoModelRepositoryBuilder<T, Reader> builder() {
+    return new MongoModelRepositoryBuilder<>();
   }
 
   @Override
-  public @Nullable ModelType findSync(@NotNull String id) {
-    Document document = this.mongoCollection.find(Filters.eq(ID_FIELD, id))
-                          .first();
+  public @Nullable ModelType findSync(final @NotNull String id) {
+    final Document document = this.mongoCollection.find(Filters.eq(ID_FIELD, id))
+                                .first();
 
     if (document == null) {
       return null;
@@ -67,9 +66,9 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
 
   @Override
   public <C extends Collection<ModelType>> @Nullable C findSync(
-    @NotNull final String field,
-    @NotNull final String value,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull String field,
+    final @NotNull String value,
+    final @NotNull Function<Integer, C> factory
   ) {
     final C foundModels = factory.apply(1);
 
@@ -82,9 +81,9 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
 
   @Override
   public @Nullable Collection<String> findIdsSync() {
-    List<String> ids = new ArrayList<>();
+    final List<String> ids = new ArrayList<>();
 
-    for (Document document : mongoCollection.find()) {
+    for (final Document document : mongoCollection.find(Projections.include(ID_FIELD))) {
       ids.add(document.getString(ID_FIELD));
     }
 
@@ -93,8 +92,8 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
 
   @Override
   public <C extends Collection<ModelType>> @Nullable C findAllSync(
-    @NotNull final Consumer<ModelType> postLoadAction,
-    @NotNull final Function<Integer, C> factory
+    final @NotNull Consumer<ModelType> postLoadAction,
+    final @NotNull Function<Integer, C> factory
   ) {
     final List<Document> documents = this.mongoCollection.find()
                                        .into(new ArrayList<>());
@@ -110,14 +109,16 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
   }
 
   @Override
-  public boolean existsSync(@NotNull final String id) {
-    return mongoCollection.find(Filters.eq(ID_FIELD, id))
+  public boolean existsSync(final @NotNull String id) {
+    return this.mongoCollection.find(Filters.and(
+        Filters.eq(ID_FIELD, id),
+        Projections.include(ID_FIELD)))
              .first() != null;
   }
 
   @Override
-  public void saveSync(@NotNull ModelType model) {
-    mongoCollection.replaceOne(
+  public void saveSync(final @NotNull ModelType model) {
+    this.mongoCollection.replaceOne(
       Filters.eq(ID_FIELD, model.getId()),
       writer.serialize(model),
       new ReplaceOptions().upsert(true)

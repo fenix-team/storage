@@ -1,5 +1,6 @@
 package es.revengenetwork.storage.codec;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -8,52 +9,70 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-public interface ModelWriter<This extends ModelWriter<This, ReadType>, ReadType> {
+@SuppressWarnings("unused")
+public interface ModelWriter<This extends ModelWriter<This, WriteType>, WriteType> {
 
-  This writeThis(@NotNull String key, @Nullable ReadType value);
+  @Contract("_, _ -> this")
+  @NotNull This writeThis(final @NotNull String key, final @Nullable WriteType value);
 
-  This writeUuid(@NotNull String field, @Nullable UUID uuid);
+  @Contract("_, _ -> this")
+  @NotNull This writeUuid(final @NotNull String field, final @Nullable UUID uuid);
 
-  default This writeDate(@NotNull String field, @Nullable Date date) {
+  @Contract("_, _ -> this")
+  default @NotNull This writeDate(final @NotNull String field, final @Nullable Date date) {
     if (date == null) {
-      return writeNumber(field, null);
+      return this.writeNumber(field, null);
     }
 
-    return writeNumber(field, date.getTime());
+    return this.writeNumber(field, date.getTime());
   }
 
-  This writeString(@NotNull String field, @Nullable String value);
+  @Contract("_, _ -> this")
+  @NotNull This writeString(final @NotNull String field, final @Nullable String value);
 
-  This writeNumber(@NotNull String field, @Nullable Number value);
+  @Contract("_, _ -> this")
+  @NotNull This writeNumber(final @NotNull String field, final @Nullable Number value);
 
-  This writeBoolean(@NotNull String field, @Nullable Boolean value);
+  @Contract("_, _ -> this")
+  @NotNull This writeBoolean(final @NotNull String field, final @Nullable Boolean value);
 
-  <T> This writeObject(
-    @NotNull String field, @Nullable T child,
-    @NotNull ModelCodec.Writer<T, ReadType> writer
+  @Contract("_, _, _ -> this")
+  <T> @NotNull This writeObject(
+    final @NotNull String field,
+    final @Nullable T child,
+    final @NotNull ModelCodec.Writer<T, WriteType> writer
   );
 
-  <T> This writeRawCollection(@NotNull String field, @Nullable Collection<T> children);
-
-  <T> This writeCollection(
-    @NotNull String field, @Nullable Collection<T> children,
-    @NotNull ModelCodec.Writer<T, ReadType> writer
+  @Contract("_, _ -> this")
+  @NotNull <T> This writeRawCollection(
+    final @NotNull String field,
+    final @Nullable Collection<T> children
   );
 
-  default <T> This writeMap(
-    @NotNull String field, @Nullable Map<?, T> children,
-    @NotNull ModelCodec.Writer<T, ReadType> writer
+  @Contract("_, _, _ -> this")
+  @NotNull <T> This writeCollection(
+    final @NotNull String field,
+    final @Nullable Collection<T> children,
+    final @NotNull ModelCodec.Writer<T, WriteType> writer
+  );
+
+  @Contract("_, _, _ -> this")
+  default <T> @NotNull This writeMap(
+    final @NotNull String field,
+    final @Nullable Map<?, T> children,
+    final @NotNull ModelCodec.Writer<T, WriteType> writer
   ) {
     if (children == null) {
-      return writeCollection(field, null, writer);
+      return this.writeCollection(field, null, writer);
     }
 
-    return writeCollection(field, children.values(), writer);
+    return this.writeCollection(field, children.values(), writer);
   }
 
-  This writeObject(@NotNull String field, @Nullable Object value);
+  @Contract("_, _ -> this")
+  @NotNull This writeObject(final @NotNull String field, final @Nullable Object value);
 
-  @NotNull ReadType current();
+  @NotNull WriteType current();
 
-  @NotNull ReadType end();
+  @NotNull WriteType end();
 }
