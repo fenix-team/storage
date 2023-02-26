@@ -1,6 +1,7 @@
 package es.revengenetwork.storage.gson.codec;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelWriter;
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.function.Function;
 
 @SuppressWarnings("unused")
 public class JsonWriter
@@ -197,6 +199,26 @@ public class JsonWriter
 
     for (T child : children) {
       array.add(writer.serialize(child));
+    }
+
+    jsonObject.add(field, array);
+    return this;
+  }
+
+  @Contract("_, _, _ -> this")
+  public <T> @NotNull JsonWriter writePrimitiveCollection(
+    final @NotNull String field,
+    final @Nullable Collection<T> children,
+    final @NotNull Function<T, JsonElement> writer
+    ) {
+    if (children == null) {
+      return this;
+    }
+
+    JsonArray array = new JsonArray(children.size());
+
+    for (T child : children) {
+      array.add(writer.apply(child));
     }
 
     jsonObject.add(field, array);

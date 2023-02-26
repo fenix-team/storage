@@ -170,6 +170,27 @@ public class JsonReader
     return objects;
   }
 
+  public <T, C extends Collection<T>> @Nullable C readPrimitiveCollection(
+    final @NotNull String field,
+    final @NotNull Function<JsonElement, T> reader,
+    final @NotNull Function<Integer, C> collectionFactory
+  ) {
+    final JsonArray array = this.jsonObject.getAsJsonArray(field);
+
+    if (array == null) {
+      return null;
+    }
+
+    final C objects = collectionFactory.apply(array.size());
+
+    for (final JsonElement element : array) {
+      final T object = reader.apply(element);
+      objects.add(object);
+    }
+
+    return objects;
+  }
+
   public @Nullable UUID readDetailedUuid(final @NotNull String field) {
     final JsonElement element = this.jsonObject.get(field);
 
