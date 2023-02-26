@@ -43,9 +43,16 @@ public class AbstractDocumentReader<This extends ModelReader<This, Document>>
     return (Number) this.document.get(field);
   }
 
+
   @Override
-  public @Nullable Boolean readBoolean(final @NotNull String field) {
-    return this.document.getBoolean(field);
+  public boolean readBoolean(final @NotNull String field) {
+    final Boolean value = this.document.getBoolean(field);
+
+    if (value == null) {
+      return false;
+    }
+
+    return value;
   }
 
   @Override

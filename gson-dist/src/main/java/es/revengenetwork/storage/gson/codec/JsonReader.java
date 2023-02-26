@@ -76,11 +76,11 @@ public class JsonReader
   }
 
   @Override
-  public @Nullable Boolean readBoolean(final @NotNull String field) {
+  public boolean readBoolean(final @NotNull String field) {
     final JsonElement element = this.jsonObject.get(field);
 
     if (element == null) {
-      return null;
+      return false;
     }
 
     return element.getAsBoolean();

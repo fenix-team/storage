@@ -40,7 +40,67 @@ public interface ModelReader<This extends ModelReader<This, ReadType>, ReadType>
 
   @Nullable Number readNumber(final @NotNull String field);
 
-  @Nullable Boolean readBoolean(final @NotNull String field);
+  default int readInt(final @NotNull String field) {
+    final Number value = readNumber(field);
+
+    if (value == null) {
+      return 0;
+    }
+
+    return value.intValue();
+  }
+
+  default long readLong(final @NotNull String field) {
+    final Number value = readNumber(field);
+
+    if (value == null) {
+      return 0;
+    }
+
+    return value.longValue();
+  }
+
+  default double readDouble(final @NotNull String field) {
+    final Number value = readNumber(field);
+
+    if (value == null) {
+      return 0;
+    }
+
+    return value.doubleValue();
+  }
+
+  default float readFloat(final @NotNull String field) {
+    final Number value = readNumber(field);
+
+    if (value == null) {
+      return 0;
+    }
+
+    return value.floatValue();
+  }
+
+  default short readShort(final @NotNull String field) {
+    final Number value = readNumber(field);
+
+    if (value == null) {
+      return 0;
+    }
+
+    return value.shortValue();
+  }
+
+  default byte readByte(final @NotNull String field) {
+    final Number value = readNumber(field);
+
+    if (value == null) {
+      return 0;
+    }
+
+    return value.byteValue();
+  }
+
+  boolean readBoolean(final @NotNull String field);
 
   <T, C extends Collection<T>> @Nullable C readRawCollection(
     final @NotNull String field,
