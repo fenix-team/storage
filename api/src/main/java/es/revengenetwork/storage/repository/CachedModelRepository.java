@@ -28,6 +28,17 @@ public class CachedModelRepository<ModelType extends Model>
     this.persistModelRepository = persistModelRepository;
   }
 
+  public @Nullable ModelType findAndCacheSync(final @NotNull String id) {
+    final ModelType model = this.findSync(id);
+
+    if (model == null) {
+      return null;
+    }
+
+    this.cacheModelRepository.saveSync(model);
+    return model;
+  }
+
   public @Nullable ModelType getSync(final @NotNull String id) {
     return this.cacheModelRepository.findSync(id);
   }
@@ -182,6 +193,10 @@ public class CachedModelRepository<ModelType extends Model>
   @Override
   public boolean deleteSync(final @NotNull String id) {
     return this.persistModelRepository.deleteSync(id);
+  }
+
+  public @NotNull CompletableFuture<@Nullable ModelType> findAndCache(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.findAndCacheSync(id), executor);
   }
 
   public @NotNull CompletableFuture<@Nullable ModelType> get(final @NotNull String id) {
