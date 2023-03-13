@@ -80,6 +80,13 @@ public class CachedModelRepository<ModelType extends Model>
     return this.cacheModelRepository.findAllSync(factory);
   }
 
+  public <C extends Collection<ModelType>> @Nullable C getAllSync(
+    final @NotNull Consumer<ModelType> postLoadAction,
+    final @NotNull Function<Integer, C> factory
+  ) {
+    return this.cacheModelRepository.findAllSync(postLoadAction, factory);
+  }
+
   public <C extends Collection<ModelType>> @Nullable C loadAllSync(
     final @NotNull Consumer<ModelType> postLoadAction,
     final @NotNull Function<Integer, C> factory
@@ -221,6 +228,13 @@ public class CachedModelRepository<ModelType extends Model>
     final @NotNull Function<Integer, C> factory
   ) {
     return CompletableFuture.supplyAsync(() -> this.getAllSync(factory), executor);
+  }
+
+  public @NotNull <C extends Collection<ModelType>> CompletableFuture<@Nullable C> getAll(
+    final @NotNull Consumer<ModelType> postLoadAction,
+    final @NotNull Function<Integer, C> factory
+  ) {
+    return CompletableFuture.supplyAsync(() -> this.getAllSync(postLoadAction, factory), executor);
   }
 
   public @NotNull <C extends Collection<ModelType>> CompletableFuture<@Nullable C> loadAll(
