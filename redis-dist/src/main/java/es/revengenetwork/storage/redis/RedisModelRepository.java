@@ -67,21 +67,19 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
   }
 
   @Override
-  public void saveSync(final @NotNull ModelType model) {
+  public @NotNull ModelType saveSync(final @NotNull ModelType model) {
     try (final Jedis jedis = this.jedisPool.getResource()) {
       final JsonObject object = this.writer.serialize(model);
       final Map<String, String> map = new HashMap<>(object.size());
-
       for (final Map.Entry<String, JsonElement> entry : object.entrySet()) {
         map.put(entry.getKey(), gson.toJson(entry.getValue()));
       }
-
       final String key = this.tableName + ":" + model.getId();
       jedis.hset(key, map);
-
       if (this.expireAfterSave > 0) {
         jedis.expire(key, this.expireAfterSave);
       }
+      return model;
     }
   }
 

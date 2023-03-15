@@ -70,8 +70,9 @@ public class CaffeineModelRepository<ModelType extends Model>
   }
 
   @Override
-  public void saveSync(@NotNull ModelType model) {
+  public @NotNull ModelType saveSync(@NotNull ModelType model) {
     cache.put(model.getId(), model);
+    return model;
   }
 
   @Override

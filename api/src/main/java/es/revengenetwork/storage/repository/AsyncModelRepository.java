@@ -34,7 +34,7 @@ public interface AsyncModelRepository<ModelType extends Model>
 
   @NotNull CompletableFuture<@NotNull Boolean> exists(final @NotNull String id);
 
-  @NotNull CompletableFuture<Void> save(final @NotNull ModelType model);
+  @NotNull CompletableFuture<@NotNull ModelType> save(final @NotNull ModelType model);
 
   @NotNull CompletableFuture<@NotNull Boolean> delete(final @NotNull ModelType model);
 

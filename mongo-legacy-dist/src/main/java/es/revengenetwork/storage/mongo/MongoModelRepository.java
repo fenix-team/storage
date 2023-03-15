@@ -117,12 +117,13 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
   }
 
   @Override
-  public void saveSync(final @NotNull ModelType model) {
+  public @NotNull ModelType saveSync(final @NotNull ModelType model) {
     this.mongoCollection.replaceOne(
       Filters.eq(ID_FIELD, model.getId()),
       writer.serialize(model),
       new ReplaceOptions().upsert(true)
     );
+    return model;
   }
 
   @Override

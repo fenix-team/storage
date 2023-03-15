@@ -1,6 +1,7 @@
 package es.revengenetwork.storage.repository;
 
 import es.revengenetwork.storage.model.Model;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +36,8 @@ public interface ModelRepository<ModelType extends Model> {
 
   boolean existsSync(final @NotNull String id);
 
-  void saveSync(final @NotNull ModelType model);
+  @Contract("_ -> param1")
+  @NotNull ModelType saveSync(final @NotNull ModelType model);
 
   default boolean deleteSync(final @NotNull ModelType model) {
     return deleteSync(model.getId());

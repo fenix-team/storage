@@ -116,7 +116,7 @@ public class GsonModelRepository<ModelType extends Model>
   }
 
   @Override
-  public void saveSync(final @NotNull ModelType model) {
+  public @NotNull ModelType saveSync(final @NotNull ModelType model) {
     final Path modelPath = resolveChild(model.getId());
 
     try {
@@ -129,6 +129,7 @@ public class GsonModelRepository<ModelType extends Model>
 
     try (final Writer writer = Files.newBufferedWriter(modelPath, StandardCharsets.UTF_8)) {
       this.gson.toJson(model, this.modelType, writer);
+      return model;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

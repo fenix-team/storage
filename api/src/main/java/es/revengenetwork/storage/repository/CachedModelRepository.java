@@ -1,6 +1,7 @@
 package es.revengenetwork.storage.repository;
 
 import es.revengenetwork.storage.model.Model;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,9 +105,11 @@ public class CachedModelRepository<ModelType extends Model>
     return models;
   }
 
-  public void uploadSync(final @NotNull ModelType model) {
+  @Contract("_ -> param1")
+  public @NotNull ModelType uploadSync(final @NotNull ModelType model) {
     this.cacheModelRepository.deleteSync(model);
     this.persistModelRepository.saveSync(model);
+    return model;
   }
 
   public void uploadAllSync(final @NotNull Consumer<ModelType> preUploadAction) {
@@ -132,13 +135,17 @@ public class CachedModelRepository<ModelType extends Model>
     return this.existsInCacheSync(id) && this.persistModelRepository.existsSync(id);
   }
 
-  public void saveInCacheSync(final @NotNull ModelType model) {
+  @Contract("_ -> param1")
+  public @NotNull ModelType saveInCacheSync(final @NotNull ModelType model) {
     this.cacheModelRepository.saveSync(model);
+    return model;
   }
 
-  public void saveInBothSync(final @NotNull ModelType model) {
+  @Contract("_ -> param1")
+  public @NotNull ModelType saveInBothSync(final @NotNull ModelType model) {
     this.cacheModelRepository.saveSync(model);
     this.persistModelRepository.saveSync(model);
+    return model;
   }
 
   public boolean deleteInCacheSync(final @NotNull String id) {
@@ -193,8 +200,8 @@ public class CachedModelRepository<ModelType extends Model>
   }
 
   @Override
-  public void saveSync(final @NotNull ModelType model) {
-    this.persistModelRepository.saveSync(model);
+  public @NotNull ModelType saveSync(final @NotNull ModelType model) {
+    return this.persistModelRepository.saveSync(model);
   }
 
   @Override
@@ -244,8 +251,8 @@ public class CachedModelRepository<ModelType extends Model>
     return CompletableFuture.supplyAsync(() -> this.loadAllSync(postLoadAction, factory), executor);
   }
 
-  public @NotNull CompletableFuture<Void> upload(final @NotNull ModelType model) {
-    return CompletableFuture.runAsync(() -> this.uploadSync(model), executor);
+  public @NotNull CompletableFuture<@NotNull ModelType> upload(final @NotNull ModelType model) {
+    return CompletableFuture.supplyAsync(() -> this.uploadSync(model), executor);
   }
 
   public @NotNull CompletableFuture<Void> uploadAll() {
@@ -270,12 +277,12 @@ public class CachedModelRepository<ModelType extends Model>
     return CompletableFuture.supplyAsync(() -> this.existsInBothSync(id), executor);
   }
 
-  public @NotNull CompletableFuture<Void> saveInCache(final @NotNull ModelType model) {
-    return CompletableFuture.runAsync(() -> this.saveInCacheSync(model), executor);
+  public @NotNull CompletableFuture<@NotNull ModelType> saveInCache(final @NotNull ModelType model) {
+    return CompletableFuture.supplyAsync(() -> this.saveInCacheSync(model), executor);
   }
 
-  public @NotNull CompletableFuture<Void> saveInBoth(final @NotNull ModelType model) {
-    return CompletableFuture.runAsync(() -> this.saveInBothSync(model), executor);
+  public @NotNull CompletableFuture<@NotNull ModelType> saveInBoth(final @NotNull ModelType model) {
+    return CompletableFuture.supplyAsync(() -> this.saveInBothSync(model), executor);
   }
 
   public @NotNull CompletableFuture<Boolean> deleteInCache(final @NotNull String id) {

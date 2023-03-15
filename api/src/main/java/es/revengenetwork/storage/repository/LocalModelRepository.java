@@ -63,8 +63,9 @@ public class LocalModelRepository<ModelType extends Model>
   }
 
   @Override
-  public void saveSync(final @NotNull ModelType model) {
+  public @NotNull ModelType saveSync(final @NotNull ModelType model) {
     this.cache.put(model.getId(), model);
+    return model;
   }
 
   @Override

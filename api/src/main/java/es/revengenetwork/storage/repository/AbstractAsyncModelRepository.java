@@ -59,8 +59,8 @@ public abstract class AbstractAsyncModelRepository<ModelType extends Model>
   }
 
   @Override
-  public @NotNull CompletableFuture<Void> save(final @NotNull ModelType model) {
-    return CompletableFuture.runAsync(() -> this.saveSync(model), executor);
+  public @NotNull CompletableFuture<ModelType> save(final @NotNull ModelType model) {
+    return CompletableFuture.supplyAsync(() -> this.saveSync(model), executor);
   }
 
   @Override
