@@ -21,16 +21,15 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
-public class MongoModelRepository<ModelType extends Model, Reader extends ModelReader<Reader,
-                                                                                       Document>>
+public class MongoModelRepository<ModelType extends Model, Reader extends ModelReader<Reader, Document>>
   extends AbstractAsyncModelRepository<ModelType> {
 
   public static final String ID_FIELD = "_id";
 
-  private final MongoCollection<Document> mongoCollection;
-  private final Function<Document, Reader> readerFactory;
-  private final ModelCodec.Writer<ModelType, Document> writer;
-  private final ModelCodec.Reader<ModelType, Document, Reader> modelReader;
+  protected final MongoCollection<Document> mongoCollection;
+  protected final Function<Document, Reader> readerFactory;
+  protected final ModelCodec.Writer<ModelType, Document> writer;
+  protected final ModelCodec.Reader<ModelType, Document, Reader> modelReader;
 
   protected MongoModelRepository(
     final @NotNull Executor executor,

@@ -33,9 +33,9 @@ public class GsonModelRepository<ModelType extends Model>
     return new GsonModelRepositoryBuilder<>(type);
   }
 
-  private final Gson gson;
-  private final Class<ModelType> modelType;
-  private final Path folderPath;
+  protected final Gson gson;
+  protected final Class<ModelType> modelType;
+  protected final Path folderPath;
 
   protected GsonModelRepository(
     final @NotNull Executor executor,
@@ -144,11 +144,11 @@ public class GsonModelRepository<ModelType extends Model>
     }
   }
 
-  private @NotNull Path resolveChild(final @NotNull String id) {
+  protected @NotNull Path resolveChild(final @NotNull String id) {
     return this.folderPath.resolve(id + ".json");
   }
 
-  private @Nullable ModelType internalFind(final @NotNull Path file) {
+  protected @Nullable ModelType internalFind(final @NotNull Path file) {
     if (Files.notExists(file)) {
       return null;
     }

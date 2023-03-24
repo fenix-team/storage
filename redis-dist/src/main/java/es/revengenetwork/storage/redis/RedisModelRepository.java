@@ -25,18 +25,17 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
-public class RedisModelRepository<ModelType extends Model, Reader extends ModelReader<Reader,
-                                                                                       JsonObject>>
+public class RedisModelRepository<ModelType extends Model, Reader extends ModelReader<Reader, JsonObject>>
   extends AbstractAsyncModelRepository<ModelType> {
 
-  private final Gson gson;
-  private final Function<JsonObject, Reader> readerFactory;
-  private final ModelCodec.Writer<ModelType, JsonObject> writer;
-  private final ModelCodec.Reader<ModelType, JsonObject, Reader> reader;
-  private final JedisPool jedisPool;
-  private final String tableName;
-  private final int expireAfterSave;
-  private final int expireAfterAccess;
+  protected final Gson gson;
+  protected final Function<JsonObject, Reader> readerFactory;
+  protected final ModelCodec.Writer<ModelType, JsonObject> writer;
+  protected final ModelCodec.Reader<ModelType, JsonObject, Reader> reader;
+  protected final JedisPool jedisPool;
+  protected final String tableName;
+  protected final int expireAfterSave;
+  protected final int expireAfterAccess;
 
   protected RedisModelRepository(
     final @NotNull Executor executor,
@@ -174,7 +173,7 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
     }
   }
 
-  private @Nullable ModelType readModel(final @NotNull Jedis jedis, final @NotNull String key) {
+  protected @Nullable ModelType readModel(final @NotNull Jedis jedis, final @NotNull String key) {
     final Map<String, String> map = jedis.hgetAll(key);
 
     if (map.isEmpty()) {
