@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import org.bson.Document;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,6 +19,11 @@ public class DocumentReader implements ModelReader<Document> {
 
   protected DocumentReader(final @NotNull Document document) {
     this.document = document;
+  }
+
+  @Contract(value = "_ -> new", pure = true)
+  public static @NotNull DocumentReader create(final @NotNull Document document) {
+    return new DocumentReader(document);
   }
 
   @Override
