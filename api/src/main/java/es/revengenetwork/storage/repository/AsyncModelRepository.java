@@ -10,9 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
-public interface AsyncModelRepository<ModelType extends Model>
-  extends ModelRepository<ModelType> {
-
+public interface AsyncModelRepository<ModelType extends Model> extends ModelRepository<ModelType> {
   @NotNull CompletableFuture<@Nullable ModelType> find(final @NotNull String id);
 
   <C extends Collection<ModelType>> @NotNull CompletableFuture<@Nullable C> find(

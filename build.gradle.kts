@@ -1,11 +1,15 @@
 plugins {
   java
   `maven-publish`
+  id("net.kyori.indra") version "3.0.1"
+  id("net.kyori.indra.checkstyle") version "3.0.1"
 }
 
 subprojects {
   apply(plugin = "java-library")
   apply(plugin = "maven-publish")
+  apply(plugin = "net.kyori.indra")
+  apply(plugin = "net.kyori.indra.checkstyle")
 
   repositories {
     mavenLocal()
@@ -15,14 +19,22 @@ subprojects {
     }
   }
 
-  tasks {
-    java {
-      toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-      }
+  indra {
+    javaVersions {
+      target(17)
+      minimumToolchain(17)
     }
 
+    checkstyle("10.8.0")
+  }
+
+  dependencies {
+    checkstyle("ca.stellardrift:stylecheck:0.2.0")
+  }
+
+  tasks {
     compileJava {
+      dependsOn("checkstyleMain")
       options.compilerArgs.add("-parameters")
     }
   }

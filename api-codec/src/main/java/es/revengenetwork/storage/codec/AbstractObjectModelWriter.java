@@ -6,13 +6,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
-public abstract class DelegateObjectModelWriter<This extends ModelWriter<This, WriteType>,
-                                                 WriteType>
+public abstract class AbstractObjectModelWriter<This extends ModelWriter<This, WriteType>, WriteType>
   implements ModelWriter<This, WriteType> {
-
   @Override
   @Contract("_, _ -> this")
   public @NotNull This writeThis(final @NotNull String key, final @Nullable WriteType value) {
@@ -25,7 +22,6 @@ public abstract class DelegateObjectModelWriter<This extends ModelWriter<This, W
     if (uuid == null) {
       return this.writeString(field, null);
     }
-
     return this.writeObject(field, uuid.toString());
   }
 
@@ -52,12 +48,11 @@ public abstract class DelegateObjectModelWriter<This extends ModelWriter<This, W
   public <T> @NotNull This writeObject(
     final @NotNull String field,
     final @Nullable T child,
-    final @NotNull ModelCodec.Writer<T, WriteType> writer
+    final ModelCodec.@NotNull Writer<T, WriteType> writer
   ) {
     if (child == null) {
       return this.writeObject(field, null);
     }
-
     return this.writeObject(field, writer.serialize(child));
   }
 
@@ -75,18 +70,15 @@ public abstract class DelegateObjectModelWriter<This extends ModelWriter<This, W
   public <T> @NotNull This writeCollection(
     final @NotNull String field,
     final @Nullable Collection<T> children,
-    final @NotNull ModelCodec.Writer<T, WriteType> writer
+    final ModelCodec.@NotNull Writer<T, WriteType> writer
   ) {
     if (children == null) {
       return this.writeObject(field, null);
     }
-
-    final List<WriteType> documents = new ArrayList<>(children.size());
-
-    for (final T child : children) {
+    final var documents = new ArrayList<WriteType>(children.size());
+    for (final var child : children) {
       documents.add(writer.serialize(child));
     }
-
     return this.writeObject(field, documents);
   }
 }

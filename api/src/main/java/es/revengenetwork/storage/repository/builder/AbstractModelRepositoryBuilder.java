@@ -10,8 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.Executor;
 
 @SuppressWarnings("unused")
-public abstract class ModelRepositoryBuilder<ModelType extends Model> {
-
+public abstract class AbstractModelRepositoryBuilder<ModelType extends Model> {
   @Contract("_ -> new")
   public abstract @NotNull AsyncModelRepository<ModelType> build(final @NotNull Executor executor);
 

@@ -8,18 +8,15 @@ import redis.clients.jedis.JedisPoolConfig;
 
 @SuppressWarnings("unused")
 public record JedisInstance(@NotNull Jedis listenerConnection, @NotNull JedisPool jedisPool) {
-
   @Contract(" -> new")
   public static @NotNull Builder builder() {
     return new Builder();
   }
 
   public static class Builder {
-
     private String host;
     private int port;
     private String password;
-
     private int timeout;
     private JedisPoolConfig config = new JedisPoolConfig();
 
@@ -58,17 +55,15 @@ public record JedisInstance(@NotNull Jedis listenerConnection, @NotNull JedisPoo
 
     @Contract(" -> new")
     public @NotNull JedisInstance build() {
-      final Jedis jedis = new Jedis(host, port, timeout);
-
-      JedisPool jedisPool;
-      if (password == null || password.trim()
-                                .isEmpty()) {
-        jedisPool = new JedisPool(config, host, port, timeout);
+      final var jedis = new Jedis(this.host, this.port, this.timeout);
+      final JedisPool jedisPool;
+      if (this.password == null || this.password.trim()
+                                     .isEmpty()) {
+        jedisPool = new JedisPool(this.config, this.host, this.port, this.timeout);
       } else {
-        jedisPool = new JedisPool(config, host, port, timeout, password);
-        jedis.auth(password);
+        jedisPool = new JedisPool(this.config, this.host, this.port, this.timeout, this.password);
+        jedis.auth(this.password);
       }
-
       return new JedisInstance(jedis, jedisPool);
     }
   }

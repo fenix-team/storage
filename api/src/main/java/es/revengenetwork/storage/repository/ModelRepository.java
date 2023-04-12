@@ -10,7 +10,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface ModelRepository<ModelType extends Model> {
-
   String ID_FIELD = "id";
 
   @Nullable ModelType findSync(final @NotNull String id);
@@ -26,7 +25,7 @@ public interface ModelRepository<ModelType extends Model> {
   default <C extends Collection<ModelType>> @Nullable C findAllSync(
     final @NotNull Function<Integer, C> factory
   ) {
-    return findAllSync(modelType -> { }, factory);
+    return this.findAllSync(modelType -> { }, factory);
   }
 
   <C extends Collection<ModelType>> @Nullable C findAllSync(
@@ -40,7 +39,7 @@ public interface ModelRepository<ModelType extends Model> {
   @NotNull ModelType saveSync(final @NotNull ModelType model);
 
   default boolean deleteSync(final @NotNull ModelType model) {
-    return deleteSync(model.getId());
+    return this.deleteSync(model.getId());
   }
 
   boolean deleteSync(final @NotNull String id);

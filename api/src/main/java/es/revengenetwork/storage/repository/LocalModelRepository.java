@@ -1,6 +1,7 @@
 package es.revengenetwork.storage.repository;
 
 import es.revengenetwork.storage.model.Model;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,9 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
-public class LocalModelRepository<ModelType extends Model>
-  implements ModelRepository<ModelType> {
-
+public final class LocalModelRepository<ModelType extends Model> implements ModelRepository<ModelType> {
   private final Map<String, ModelType> cache;
 
   private LocalModelRepository(final @NotNull Map<String, ModelType> cache) {
@@ -32,12 +31,11 @@ public class LocalModelRepository<ModelType extends Model>
     final @NotNull String value,
     final @NotNull Function<Integer, C> factory
   ) {
-    throw new UnsupportedOperationException(
-      "Local repository does not support findSync(String, String, Function)");
+    throw new UnsupportedOperationException("Local repository does not support findSync(String, String, Function)");
   }
 
   @Override
-  public @Nullable Collection<String> findIdsSync() {
+  public @NotNull Collection<String> findIdsSync() {
     return this.cache.keySet();
   }
 
@@ -46,14 +44,12 @@ public class LocalModelRepository<ModelType extends Model>
     final @NotNull Consumer<ModelType> postLoadAction,
     final @NotNull Function<Integer, C> factory
   ) {
-    final Collection<ModelType> values = this.cache.values();
-    final C collection = factory.apply(values.size());
-
-    for (final ModelType value : values) {
+    final var values = this.cache.values();
+    final var collection = factory.apply(values.size());
+    for (final var value : values) {
       postLoadAction.accept(value);
       collection.add(value);
     }
-
     return collection;
   }
 
@@ -73,14 +69,17 @@ public class LocalModelRepository<ModelType extends Model>
     return this.cache.remove(id) != null;
   }
 
+  @Contract(" -> new")
   public static <T extends Model> @NotNull LocalModelRepository<T> hashMap() {
     return LocalModelRepository.create(new HashMap<>());
   }
 
+  @Contract(" -> new")
   public static <T extends Model> @NotNull LocalModelRepository<T> concurrent() {
     return LocalModelRepository.create(new ConcurrentHashMap<>());
   }
 
+  @Contract("_ -> new")
   public static <T extends Model> @NotNull LocalModelRepository<T> create(final @NotNull Map<String, T> cache) {
     return new LocalModelRepository<>(cache);
   }

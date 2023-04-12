@@ -11,7 +11,6 @@ import java.util.UUID;
 
 @SuppressWarnings("unused")
 public interface ModelWriter<This extends ModelWriter<This, WriteType>, WriteType> {
-
   @Contract("_, _ -> this")
   @NotNull This writeThis(final @NotNull String key, final @Nullable WriteType value);
 
@@ -23,7 +22,6 @@ public interface ModelWriter<This extends ModelWriter<This, WriteType>, WriteTyp
     if (date == null) {
       return this.writeNumber(field, null);
     }
-
     return this.writeNumber(field, date.getTime());
   }
 
@@ -40,7 +38,7 @@ public interface ModelWriter<This extends ModelWriter<This, WriteType>, WriteTyp
   <T> @NotNull This writeObject(
     final @NotNull String field,
     final @Nullable T child,
-    final @NotNull ModelCodec.Writer<T, WriteType> writer
+    final ModelCodec.@NotNull Writer<T, WriteType> writer
   );
 
   @Contract("_, _ -> this")
@@ -53,19 +51,18 @@ public interface ModelWriter<This extends ModelWriter<This, WriteType>, WriteTyp
   @NotNull <T> This writeCollection(
     final @NotNull String field,
     final @Nullable Collection<T> children,
-    final @NotNull ModelCodec.Writer<T, WriteType> writer
+    final ModelCodec.@NotNull Writer<T, WriteType> writer
   );
 
   @Contract("_, _, _ -> this")
   default <T> @NotNull This writeMap(
     final @NotNull String field,
     final @Nullable Map<?, T> children,
-    final @NotNull ModelCodec.Writer<T, WriteType> writer
+    final ModelCodec.@NotNull Writer<T, WriteType> writer
   ) {
     if (children == null) {
       return this.writeCollection(field, null, writer);
     }
-
     return this.writeCollection(field, children.values(), writer);
   }
 

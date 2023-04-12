@@ -15,7 +15,6 @@ import java.util.concurrent.Executor;
 
 @SuppressWarnings("unused")
 public final class GsonModelRepositoryBuilder<ModelType extends Model> {
-
   private final Class<ModelType> type;
   private Gson gson;
   private Path folderPath;
@@ -41,12 +40,11 @@ public final class GsonModelRepositoryBuilder<ModelType extends Model> {
     if (Files.notExists(this.folderPath)) {
       try {
         Files.createDirectory(this.folderPath);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new RuntimeException(e);
       }
     }
-
-    return new GsonModelRepository<>(executor, gson, type, folderPath);
+    return new GsonModelRepository<>(executor, this.gson, this.type, this.folderPath);
   }
 
   @Contract("_, _ -> new")

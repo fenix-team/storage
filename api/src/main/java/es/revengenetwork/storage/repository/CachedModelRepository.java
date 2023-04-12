@@ -13,9 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
-public class CachedModelRepository<ModelType extends Model>
-  extends AbstractAsyncModelRepository<ModelType> {
-
+public class CachedModelRepository<ModelType extends Model> extends AbstractAsyncModelRepository<ModelType> {
   protected final ModelRepository<ModelType> cacheModelRepository;
   protected final ModelRepository<ModelType> persistModelRepository;
 
@@ -30,12 +28,10 @@ public class CachedModelRepository<ModelType extends Model>
   }
 
   public @Nullable ModelType findAndCacheSync(final @NotNull String id) {
-    final ModelType model = this.findSync(id);
-
+    final var model = this.findSync(id);
     if (model == null) {
       return null;
     }
-
     this.cacheModelRepository.saveSync(model);
     return model;
   }
@@ -45,28 +41,22 @@ public class CachedModelRepository<ModelType extends Model>
   }
 
   public @Nullable ModelType getOrFindSync(final @NotNull String id) {
-    final ModelType model = this.getSync(id);
-
+    final var model = this.getSync(id);
     if (model != null) {
       return model;
     }
-
     return this.findSync(id);
   }
 
   public @Nullable ModelType getOrFindAndCacheSync(final @NotNull String id) {
-    final ModelType model = this.getSync(id);
-
-    if (model != null) {
-      return model;
+    final var cachedModel = this.getSync(id);
+    if (cachedModel != null) {
+      return cachedModel;
     }
-
-    final ModelType foundModel = this.findSync(id);
-
+    final var foundModel = this.findSync(id);
     if (foundModel == null) {
       return null;
     }
-
     this.cacheModelRepository.saveSync(foundModel);
     return foundModel;
   }
@@ -75,9 +65,7 @@ public class CachedModelRepository<ModelType extends Model>
     return this.cacheModelRepository.findIdsSync();
   }
 
-  public <C extends Collection<ModelType>> @Nullable C getAllSync(
-    final @NotNull Function<Integer, C> factory
-  ) {
+  public <C extends Collection<ModelType>> @Nullable C getAllSync(final @NotNull Function<Integer, C> factory) {
     return this.cacheModelRepository.findAllSync(factory);
   }
 
@@ -92,16 +80,13 @@ public class CachedModelRepository<ModelType extends Model>
     final @NotNull Consumer<ModelType> postLoadAction,
     final @NotNull Function<Integer, C> factory
   ) {
-    final C models = this.persistModelRepository.findAllSync(postLoadAction, factory);
-
+    final var models = this.persistModelRepository.findAllSync(postLoadAction, factory);
     if (models == null) {
       return null;
     }
-
-    for (final ModelType model : models) {
+    for (final var model : models) {
       this.cacheModelRepository.saveSync(model);
     }
-
     return models;
   }
 
@@ -119,8 +104,7 @@ public class CachedModelRepository<ModelType extends Model>
         this.cacheModelRepository.deleteSync(model);
         this.persistModelRepository.saveSync(model);
       },
-      ArrayList::new
-    );
+      ArrayList::new);
   }
 
   public boolean existsInCacheSync(final @NotNull String id) {
@@ -163,8 +147,7 @@ public class CachedModelRepository<ModelType extends Model>
         preSaveAction.accept(model);
         this.persistModelRepository.saveSync(model);
       },
-      ArrayList::new
-    );
+      ArrayList::new);
   }
 
   @Override

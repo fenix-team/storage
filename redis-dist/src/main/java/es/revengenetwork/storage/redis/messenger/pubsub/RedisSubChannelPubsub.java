@@ -1,8 +1,6 @@
 package es.revengenetwork.storage.redis.messenger.pubsub;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import es.revengenetwork.storage.redis.channel.RedisChannel;
 import org.jetbrains.annotations.NotNull;
@@ -10,9 +8,7 @@ import redis.clients.jedis.JedisPubSub;
 
 import java.util.Map;
 
-public class RedisSubChannelPubsub
-  extends JedisPubSub {
-
+public class RedisSubChannelPubsub extends JedisPubSub {
   private final String parentChannel;
   private final String serverId;
   private final Gson gson;
@@ -36,44 +32,32 @@ public class RedisSubChannelPubsub
     if (!channel.equals(this.parentChannel)) {
       return;
     }
-
     // we can parse the message as a json object
-    final JsonObject jsonMessage = JsonParser.parseString(message)
-                               .getAsJsonObject();
-
-    final String serverId = jsonMessage.get("server")
-                        .getAsString();
-
+    final var jsonMessage = JsonParser.parseString(message)
+                              .getAsJsonObject();
+    final var serverId = jsonMessage.get("server")
+                           .getAsString();
     // if the message is from the server we're listening to
     if (serverId.equals(this.serverId)) {
       return;
     }
-
-    final JsonElement targetServerElement = jsonMessage.get("targetServer");
-
+    final var targetServerElement = jsonMessage.get("targetServer");
     if (targetServerElement != null) {
-      final String targetServer = targetServerElement.getAsString();
-
+      final var targetServer = targetServerElement.getAsString();
       // if the message isn't for this server, ignore it
       if (!targetServer.equals(this.serverId)) {
         return;
       }
     }
-
-    final String subChannel = jsonMessage.get("channel")
-                          .getAsString();
-
-    @SuppressWarnings("unchecked")
-    final RedisChannel<Object> channelObject =
-      (RedisChannel<Object>) this.channels.get(subChannel);
-
+    final var subChannel = jsonMessage.get("channel")
+                             .getAsString();
+    @SuppressWarnings("unchecked") final var channelObject = (RedisChannel<Object>) this.channels.get(subChannel);
     // if the channel doesn't exist, we can't do anything
     if (channelObject == null) {
       return;
     }
-
-    final JsonElement object = jsonMessage.get("message");
-    final Object deserializedObject = this.gson.fromJson(object, channelObject.getType());
+    final var object = jsonMessage.get("message");
+    final var deserializedObject = this.gson.fromJson(object, channelObject.getType());
     channelObject.listen(serverId, deserializedObject);
   }
 }

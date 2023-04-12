@@ -14,9 +14,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
-public class JsonWriter
-  implements ModelWriter<JsonWriter, JsonObject> {
-
+public class JsonWriter implements ModelWriter<JsonWriter, JsonObject> {
   private final JsonObject jsonObject;
 
   protected JsonWriter(final @NotNull JsonObject jsonObject) {
@@ -41,7 +39,6 @@ public class JsonWriter
     if (uuid == null) {
       return this;
     }
-
     this.jsonObject.add(key, this.writeDetailedUuid(uuid));
     return this;
   }
@@ -54,19 +51,14 @@ public class JsonWriter
     if (uuids == null) {
       return this;
     }
-
-    final JsonArray array = new JsonArray(uuids.size());
-
-    for (final UUID uuid : uuids) {
-      final JsonObject serializedUuid = this.writeDetailedUuid(uuid);
-
+    final var array = new JsonArray(uuids.size());
+    for (final var uuid : uuids) {
+      final var serializedUuid = this.writeDetailedUuid(uuid);
       if (serializedUuid == null) {
         continue;
       }
-
       array.add(serializedUuid);
     }
-
     this.jsonObject.add(key, array);
     return this;
   }
@@ -75,8 +67,7 @@ public class JsonWriter
     if (uuid == null) {
       return null;
     }
-
-    final JsonObject serializedUuid = new JsonObject();
+    final var serializedUuid = new JsonObject();
     serializedUuid.addProperty("least", uuid.getLeastSignificantBits());
     serializedUuid.addProperty("most", uuid.getMostSignificantBits());
     return serializedUuid;
@@ -98,7 +89,6 @@ public class JsonWriter
     if (uuid == null) {
       return this;
     }
-
     this.jsonObject.addProperty(field, uuid.toString());
     return this;
   }
@@ -112,7 +102,6 @@ public class JsonWriter
     if (value == null) {
       return this;
     }
-
     this.jsonObject.addProperty(field, value);
     return this;
   }
@@ -126,7 +115,6 @@ public class JsonWriter
     if (value == null) {
       return this;
     }
-
     this.jsonObject.addProperty(field, value);
     return this;
   }
@@ -140,7 +128,6 @@ public class JsonWriter
     if (value == null) {
       return this;
     }
-
     this.jsonObject.addProperty(field, value);
     return this;
   }
@@ -155,7 +142,6 @@ public class JsonWriter
     if (child == null) {
       return this;
     }
-
     this.jsonObject.add(field, writer.serialize(child));
     return this;
   }
@@ -169,17 +155,13 @@ public class JsonWriter
     if (children == null) {
       return this;
     }
-
-    final JsonArray array = new JsonArray(children.size());
-
-    for (final T child : children) {
+    final var array = new JsonArray(children.size());
+    for (final var child : children) {
       if (child == null) {
         continue;
       }
-
       array.add(child.toString());
     }
-
     this.jsonObject.add(field, array);
     return this;
   }
@@ -189,19 +171,16 @@ public class JsonWriter
   public <T> @NotNull JsonWriter writeCollection(
     final @NotNull String field,
     final @Nullable Collection<T> children,
-    final @NotNull ModelCodec.Writer<T, JsonObject> writer
+    final ModelCodec.@NotNull Writer<T, JsonObject> writer
   ) {
     if (children == null) {
       return this;
     }
-
-    JsonArray array = new JsonArray(children.size());
-
-    for (T child : children) {
+    final var array = new JsonArray(children.size());
+    for (final var child : children) {
       array.add(writer.serialize(child));
     }
-
-    jsonObject.add(field, array);
+    this.jsonObject.add(field, array);
     return this;
   }
 
@@ -210,18 +189,15 @@ public class JsonWriter
     final @NotNull String field,
     final @Nullable Collection<T> children,
     final @NotNull Function<T, JsonElement> writer
-    ) {
+  ) {
     if (children == null) {
       return this;
     }
-
-    JsonArray array = new JsonArray(children.size());
-
-    for (T child : children) {
+    final var array = new JsonArray(children.size());
+    for (final var child : children) {
       array.add(writer.apply(child));
     }
-
-    jsonObject.add(field, array);
+    this.jsonObject.add(field, array);
     return this;
   }
 
@@ -233,11 +209,11 @@ public class JsonWriter
 
   @Override
   public @NotNull JsonObject current() {
-    return jsonObject;
+    return this.jsonObject;
   }
 
   @Override
   public @NotNull JsonObject end() {
-    return jsonObject;
+    return this.jsonObject;
   }
 }

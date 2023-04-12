@@ -1,6 +1,6 @@
 package es.revengenetwork.storage.mongo.codec;
 
-import es.revengenetwork.storage.codec.DelegateObjectModelWriter;
+import es.revengenetwork.storage.codec.AbstractObjectModelWriter;
 import es.revengenetwork.storage.codec.ModelWriter;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.mongo.MongoModelRepository;
@@ -13,9 +13,7 @@ import org.jetbrains.annotations.Nullable;
  * It's a builder for documents
  */
 @SuppressWarnings("unused")
-public class DocumentWriter
-  extends DelegateObjectModelWriter<DocumentWriter, Document> {
-
+public class DocumentWriter extends AbstractObjectModelWriter<DocumentWriter, Document> {
   protected final Document document;
 
   protected DocumentWriter(final @NotNull Document document) {
