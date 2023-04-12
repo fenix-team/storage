@@ -10,29 +10,24 @@ import java.util.UUID;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
-public interface ModelReader<This extends ModelReader<This, ReadType>, ReadType> {
-
+public interface ModelReader<ReadType> {
   @NotNull ReadType getRaw();
 
   @Nullable ReadType readThis(final @NotNull String field);
 
   default @Nullable UUID readUuid(final @NotNull String field) {
-    final String uuidString = readString(field);
-
+    final var uuidString = this.readString(field);
     if (uuidString == null) {
       return null;
     }
-
     return UUID.fromString(uuidString);
   }
 
   default @Nullable Date readDate(final @NotNull String field) {
-    final Number value = readNumber(field);
-
+    final var value = this.readNumber(field);
     if (value == null) {
       return null;
     }
-
     return new Date(value.longValue());
   }
 
@@ -41,62 +36,50 @@ public interface ModelReader<This extends ModelReader<This, ReadType>, ReadType>
   @Nullable Number readNumber(final @NotNull String field);
 
   default int readInt(final @NotNull String field) {
-    final Number value = readNumber(field);
-
+    final var value = this.readNumber(field);
     if (value == null) {
       return 0;
     }
-
     return value.intValue();
   }
 
   default long readLong(final @NotNull String field) {
-    final Number value = readNumber(field);
-
+    final var value = this.readNumber(field);
     if (value == null) {
       return 0;
     }
-
     return value.longValue();
   }
 
   default double readDouble(final @NotNull String field) {
-    final Number value = readNumber(field);
-
+    final var value = this.readNumber(field);
     if (value == null) {
       return 0;
     }
-
     return value.doubleValue();
   }
 
   default float readFloat(final @NotNull String field) {
-    final Number value = readNumber(field);
-
+    final var value = this.readNumber(field);
     if (value == null) {
       return 0;
     }
-
     return value.floatValue();
   }
 
   default short readShort(final @NotNull String field) {
-    final Number value = readNumber(field);
-
+    final var value = this.readNumber(field);
     if (value == null) {
       return 0;
     }
-
     return value.shortValue();
   }
 
   default byte readByte(final @NotNull String field) {
-    final Number value = readNumber(field);
-
+    final var value = this.readNumber(field);
     if (value == null) {
       return 0;
     }
-
     return value.byteValue();
   }
 
@@ -108,20 +91,23 @@ public interface ModelReader<This extends ModelReader<This, ReadType>, ReadType>
     final @NotNull Function<Integer, C> collectionFactory
   );
 
-  <T> @Nullable T readObject(
+  <T, R extends ModelReader<ReadType>> @Nullable T readObject(
     final @NotNull String field,
-    final @NotNull ModelCodec.Reader<T, ReadType, This> reader
+    final @NotNull Function<ReadType, R> readerFactory,
+    final ModelCodec.@NotNull Reader<T, ReadType, R> reader
   );
 
-  <K, V> @Nullable Map<K, V> readMap(
+  <K, V, R extends ModelReader<ReadType>> @Nullable Map<K, V> readMap(
     final @NotNull String field,
     final @NotNull Function<V, K> keyParser,
-    final @NotNull ModelCodec.Reader<V, ReadType, This> reader
+    final @NotNull Function<ReadType, R> readerFactory,
+    final ModelCodec.@NotNull Reader<V, ReadType, R> reader
   );
 
-  <T, C extends Collection<T>> @Nullable C readCollection(
+  <T, C extends Collection<T>, R extends ModelReader<ReadType>> @Nullable C readCollection(
     final @NotNull String field,
-    final @NotNull ModelCodec.Reader<T, ReadType, This> reader,
+    final ModelCodec.@NotNull Reader<T, ReadType, R> reader,
+    final @NotNull Function<ReadType, R> readerFactory,
     final @NotNull Function<Integer, C> collectionFactory
   );
 }

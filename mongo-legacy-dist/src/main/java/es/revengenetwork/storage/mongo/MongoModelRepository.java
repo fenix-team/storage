@@ -15,15 +15,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
-public class MongoModelRepository<ModelType extends Model, Reader extends ModelReader<Reader, Document>>
+public class MongoModelRepository<ModelType extends Model, Reader extends ModelReader<Document>>
   extends AbstractAsyncModelRepository<ModelType> {
-
   public static final String ID_FIELD = "_id";
 
   protected final MongoCollection<Document> mongoCollection;
@@ -35,8 +33,8 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
     final @NotNull Executor executor,
     final @NotNull MongoCollection<Document> mongoCollection,
     final @NotNull Function<Document, Reader> readerFactory,
-    final @NotNull ModelCodec.Writer<ModelType, Document> writer,
-    final @NotNull ModelCodec.Reader<ModelType, Document, Reader> modelReader
+    final ModelCodec.@NotNull Writer<ModelType, Document> writer,
+    final ModelCodec.@NotNull Reader<ModelType, Document, Reader> modelReader
   ) {
     super(executor);
     this.mongoCollection = mongoCollection;
@@ -46,20 +44,18 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
   }
 
   @Contract(value = " -> new")
-  public static <T extends Model, Reader extends ModelReader<Reader, Document>>
-  @NotNull MongoModelRepositoryBuilder<T, Reader> builder() {
+  public static <T extends Model, R extends ModelReader<Document>>
+  @NotNull MongoModelRepositoryBuilder<T, R> builder() {
     return new MongoModelRepositoryBuilder<>();
   }
 
   @Override
   public @Nullable ModelType findSync(final @NotNull String id) {
-    final Document document = this.mongoCollection.find(Filters.eq(ID_FIELD, id))
-                                .first();
-
+    final var document = this.mongoCollection.find(Filters.eq(ID_FIELD, id))
+                           .first();
     if (document == null) {
       return null;
     }
-
     return this.modelReader.deserialize(this.readerFactory.apply(document));
   }
 
@@ -69,23 +65,19 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
     final @NotNull String value,
     final @NotNull Function<Integer, C> factory
   ) {
-    final C foundModels = factory.apply(1);
-
-    for (final Document document : this.mongoCollection.find(Filters.eq(field, value))) {
+    final var foundModels = factory.apply(1);
+    for (final var document : this.mongoCollection.find(Filters.eq(field, value))) {
       foundModels.add(this.modelReader.deserialize(this.readerFactory.apply(document)));
     }
-
     return null;
   }
 
   @Override
   public @Nullable Collection<String> findIdsSync() {
-    final List<String> ids = new ArrayList<>();
-
-    for (final Document document : mongoCollection.find(Projections.include(ID_FIELD))) {
+    final var ids = new ArrayList<String>();
+    for (final var document : this.mongoCollection.find(Projections.include(ID_FIELD))) {
       ids.add(document.getString(ID_FIELD));
     }
-
     return ids;
   }
 
@@ -94,16 +86,14 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
     final @NotNull Consumer<ModelType> postLoadAction,
     final @NotNull Function<Integer, C> factory
   ) {
-    final List<Document> documents = this.mongoCollection.find()
-                                       .into(new ArrayList<>());
-    final C foundModels = factory.apply(documents.size());
-
-    for (final Document document : documents) {
-      final ModelType model = this.modelReader.deserialize(this.readerFactory.apply(document));
+    final var documents = this.mongoCollection.find()
+                            .into(new ArrayList<>());
+    final var foundModels = factory.apply(documents.size());
+    for (final var document : documents) {
+      final var model = this.modelReader.deserialize(this.readerFactory.apply(document));
       postLoadAction.accept(model);
       foundModels.add(model);
     }
-
     return foundModels;
   }
 
@@ -119,15 +109,15 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
   public @NotNull ModelType saveSync(final @NotNull ModelType model) {
     this.mongoCollection.replaceOne(
       Filters.eq(ID_FIELD, model.getId()),
-      writer.serialize(model),
+      this.writer.serialize(model),
       new ReplaceOptions().upsert(true)
     );
     return model;
   }
 
   @Override
-  public boolean deleteSync(@NotNull String id) {
-    return mongoCollection.deleteOne(Filters.eq(ID_FIELD, id))
+  public boolean deleteSync(final @NotNull String id) {
+    return this.mongoCollection.deleteOne(Filters.eq(ID_FIELD, id))
              .wasAcknowledged();
   }
 }
