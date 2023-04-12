@@ -1,13 +1,14 @@
 package es.revengenetwork.storage.gson;
 
-import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.internal.bind.TypeAdapters;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+import es.revengenetwork.storage.codec.ModelCodec;
+import es.revengenetwork.storage.codec.ModelReader;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.AbstractAsyncModelRepository;
 import es.revengenetwork.storage.repository.ModelRepository;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -18,27 +19,42 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
-public class GsonModelRepository<ModelType extends Model> extends AbstractAsyncModelRepository<ModelType> {
-  protected final Gson gson;
+public class GsonModelRepository<ModelType extends Model, Reader extends ModelReader<JsonObject>>
+  extends AbstractAsyncModelRepository<ModelType> {
   protected final Class<ModelType> modelType;
   protected final Path folderPath;
+  protected final boolean prettyPrinting;
+  protected final ModelCodec.Writer<ModelType, JsonObject> writer;
+  protected final Function<JsonObject, Reader> readerFactory;
+  protected final ModelCodec.Reader<ModelType, JsonObject, Reader> reader;
 
   protected GsonModelRepository(
     final @NotNull Executor executor,
-    final @NotNull Gson gson,
     final @NotNull Class<ModelType> modelType,
-    final @NotNull Path folderPath
+    final @NotNull Path folderPath,
+    final boolean prettyPrinting,
+    final ModelCodec.@NotNull Writer<ModelType, JsonObject> writer,
+    final @NotNull Function<JsonObject, Reader> readerFactory,
+    final ModelCodec.@NotNull Reader<ModelType, JsonObject, Reader> reader
   ) {
     super(executor);
-    this.gson = gson;
+    this.prettyPrinting = prettyPrinting;
     this.modelType = modelType;
     this.folderPath = folderPath;
+    this.writer = writer;
+    this.readerFactory = readerFactory;
+    this.reader = reader;
   }
 
   @Contract("_ -> new")
-  public static <T extends Model> @NotNull GsonModelRepositoryBuilder<T> builder(final @NotNull Class<T> type) {
+  public static <T extends Model, R extends ModelReader<JsonObject>> @NotNull GsonModelRepositoryBuilder<T, R> builder(
+    final @NotNull Class<T> type
+  ) {
     return new GsonModelRepositoryBuilder<>(type);
   }
 
@@ -105,7 +121,7 @@ public class GsonModelRepository<ModelType extends Model> extends AbstractAsyncM
 
   @Override
   public @NotNull ModelType saveSync(final @NotNull ModelType model) {
-    final var modelPath = this.resolveChild(model.getId());
+    final var modelPath = this.resolveChild(model.id());
     try {
       if (Files.notExists(modelPath)) {
         Files.createFile(modelPath);
@@ -113,8 +129,13 @@ public class GsonModelRepository<ModelType extends Model> extends AbstractAsyncM
     } catch (final IOException e) {
       throw new RuntimeException(e);
     }
-    try (final var writer = Files.newBufferedWriter(modelPath, StandardCharsets.UTF_8)) {
-      this.gson.toJson(model, this.modelType, writer);
+    try (final var writer = new JsonWriter(Files.newBufferedWriter(modelPath, StandardCharsets.UTF_8))) {
+      writer.setSerializeNulls(false);
+      if (this.prettyPrinting) {
+        writer.setIndent("  ");
+      }
+      final var jsonObject = this.writer.serialize(model);
+      TypeAdapters.JSON_ELEMENT.write(writer, jsonObject);
       return model;
     } catch (final IOException e) {
       throw new RuntimeException(e);
@@ -138,8 +159,14 @@ public class GsonModelRepository<ModelType extends Model> extends AbstractAsyncM
     if (Files.notExists(file)) {
       return null;
     }
-    try (final var reader = Files.newBufferedReader(file)) {
-      return this.gson.fromJson(reader, this.modelType);
+    try (final var reader = new JsonReader(Files.newBufferedReader(file))) {
+      final var jsonObject = new JsonObject();
+      reader.beginObject();
+      while (reader.hasNext()) {
+        jsonObject.add(reader.nextName(), TypeAdapters.JSON_ELEMENT.read(reader));
+      }
+      reader.endObject();
+      return this.reader.deserialize(this.readerFactory.apply(jsonObject));
     } catch (final IOException e) {
       throw new RuntimeException(e);
     }
