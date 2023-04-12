@@ -1,13 +1,12 @@
 package es.revengenetwork.storage.repository;
 
 import es.revengenetwork.storage.model.Model;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public interface AsyncModelRepository<ModelType extends Model> extends ModelRepository<ModelType> {

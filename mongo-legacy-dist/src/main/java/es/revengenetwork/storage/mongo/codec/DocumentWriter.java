@@ -32,7 +32,7 @@ public class DocumentWriter extends AbstractObjectModelWriter<DocumentWriter, Do
 
   @Contract("_ -> new")
   public static @NotNull ModelWriter<DocumentWriter, Document> create(final @NotNull Model model) {
-    return create().writeString(MongoModelRepository.ID_FIELD, model.getId());
+    return create().writeString(MongoModelRepository.ID_FIELD, model.id());
   }
 
   @Override

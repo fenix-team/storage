@@ -1,17 +1,16 @@
 package es.revengenetwork.storage.codec;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public interface ModelReader<ReadType> {
-  @NotNull ReadType getRaw();
+  @NotNull ReadType raw();
 
   @Nullable ReadType readThis(final @NotNull String field);
 

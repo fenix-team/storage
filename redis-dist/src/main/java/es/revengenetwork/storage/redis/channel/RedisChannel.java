@@ -2,13 +2,12 @@ package es.revengenetwork.storage.redis.channel;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import redis.clients.jedis.JedisPool;
-
 import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import redis.clients.jedis.JedisPool;
 
 @SuppressWarnings("unused")
 public class RedisChannel<MessageType> {
@@ -37,11 +36,11 @@ public class RedisChannel<MessageType> {
     this.listeners = new HashSet<>();
   }
 
-  public @NotNull String getName() {
+  public @NotNull String name() {
     return this.name;
   }
 
-  public @NotNull Type getType() {
+  public @NotNull Type type() {
     return this.type;
   }
 
@@ -75,7 +74,7 @@ public class RedisChannel<MessageType> {
     }
   }
 
-  public @NotNull Set<RedisChannelListener<MessageType>> getListeners() {
+  public @NotNull Set<RedisChannelListener<MessageType>> listeners() {
     return this.listeners;
   }
 }

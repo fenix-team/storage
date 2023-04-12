@@ -1,14 +1,13 @@
 package es.revengenetwork.storage.repository;
 
 import es.revengenetwork.storage.model.Model;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractAsyncModelRepository<ModelType extends Model> implements AsyncModelRepository<ModelType> {
   protected final Executor executor;

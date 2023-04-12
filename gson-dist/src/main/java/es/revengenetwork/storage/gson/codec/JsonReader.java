@@ -4,15 +4,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class JsonReader implements ModelReader<JsonObject> {
@@ -41,7 +40,7 @@ public class JsonReader implements ModelReader<JsonObject> {
   }
 
   @Override
-  public @NotNull JsonObject getRaw() {
+  public @NotNull JsonObject raw() {
     return this.jsonObject;
   }
 

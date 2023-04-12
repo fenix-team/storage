@@ -8,16 +8,15 @@ import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.AbstractAsyncModelRepository;
-import org.bson.Document;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.bson.Document;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class MongoModelRepository<ModelType extends Model, Reader extends ModelReader<Document>>
@@ -108,7 +107,7 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
   @Override
   public @NotNull ModelType saveSync(final @NotNull ModelType model) {
     this.mongoCollection.replaceOne(
-      Filters.eq(ID_FIELD, model.getId()),
+      Filters.eq(ID_FIELD, model.id()),
       this.writer.serialize(model),
       new ReplaceOptions().upsert(true)
     );

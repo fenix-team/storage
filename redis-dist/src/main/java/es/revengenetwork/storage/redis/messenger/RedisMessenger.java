@@ -5,14 +5,13 @@ import com.google.gson.reflect.TypeToken;
 import es.revengenetwork.storage.redis.channel.RedisChannel;
 import es.revengenetwork.storage.redis.connection.JedisInstance;
 import es.revengenetwork.storage.redis.messenger.pubsub.RedisSubChannelPubsub;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPubSub;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
 
 @SuppressWarnings("unused")
 public class RedisMessenger {
@@ -42,11 +41,11 @@ public class RedisMessenger {
   }
 
   @Contract(value = "_, _ -> new")
-  public <T> @NotNull RedisChannel<T> getChannel(final @NotNull String name, final @NotNull Class<T> type) {
-    return this.getChannel(name, TypeToken.get(type));
+  public <T> @NotNull RedisChannel<T> channel(final @NotNull String name, final @NotNull Class<T> type) {
+    return this.channel(name, TypeToken.get(type));
   }
 
-  public <T> @NotNull RedisChannel<T> getChannel(final @NotNull String name, final @NotNull TypeToken<T> type) {
+  public <T> @NotNull RedisChannel<T> channel(final @NotNull String name, final @NotNull TypeToken<T> type) {
     @SuppressWarnings("unchecked") final var channel = (RedisChannel<T>) this.channels.get(name);
     final var rawType = type.getType();
     if (channel == null) {
@@ -60,7 +59,7 @@ public class RedisMessenger {
       this.channels.put(name, newChannel);
       return newChannel;
     } else {
-      if (!channel.getType()
+      if (!channel.type()
              .equals(rawType)) {
         throw new IllegalArgumentException("Channel type mismatch");
       }

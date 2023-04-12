@@ -2,16 +2,15 @@ package es.revengenetwork.storage.mongo.codec;
 
 import es.revengenetwork.storage.codec.ModelCodec;
 import es.revengenetwork.storage.codec.ModelReader;
-import org.bson.Document;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import org.bson.Document;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class DocumentReader implements ModelReader<Document> {
@@ -22,7 +21,7 @@ public class DocumentReader implements ModelReader<Document> {
   }
 
   @Override
-  public @NotNull Document getRaw() {
+  public @NotNull Document raw() {
     return this.document;
   }
 

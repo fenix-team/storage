@@ -1,13 +1,12 @@
 package es.revengenetwork.storage.repository;
 
 import es.revengenetwork.storage.model.Model;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface ModelRepository<ModelType extends Model> {
   String ID_FIELD = "id";
@@ -39,7 +38,7 @@ public interface ModelRepository<ModelType extends Model> {
   @NotNull ModelType saveSync(final @NotNull ModelType model);
 
   default boolean deleteSync(final @NotNull ModelType model) {
-    return this.deleteSync(model.getId());
+    return this.deleteSync(model.id());
   }
 
   boolean deleteSync(final @NotNull String id);

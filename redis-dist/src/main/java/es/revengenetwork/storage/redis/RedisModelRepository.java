@@ -8,18 +8,17 @@ import es.revengenetwork.storage.codec.ModelReader;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.AbstractAsyncModelRepository;
 import es.revengenetwork.storage.repository.ModelRepository;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 @SuppressWarnings("unused")
 public class RedisModelRepository<ModelType extends Model, Reader extends ModelReader<JsonObject>>
@@ -69,7 +68,7 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
       for (final var entry : object.entrySet()) {
         map.put(entry.getKey(), this.gson.toJson(entry.getValue()));
       }
-      final var key = this.tableName + ":" + model.getId();
+      final var key = this.tableName + ":" + model.id();
       jedis.hset(key, map);
       if (this.expireAfterSave > 0) {
         jedis.expire(key, this.expireAfterSave);

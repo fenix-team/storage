@@ -1,8 +1,11 @@
+import com.diffplug.gradle.spotless.FormatExtension
+
 plugins {
   java
   `maven-publish`
   id("net.kyori.indra") version "3.0.1"
   id("net.kyori.indra.checkstyle") version "3.0.1"
+  id("com.diffplug.spotless") version "6.18.0"
 }
 
 subprojects {
@@ -10,6 +13,7 @@ subprojects {
   apply(plugin = "maven-publish")
   apply(plugin = "net.kyori.indra")
   apply(plugin = "net.kyori.indra.checkstyle")
+  apply(plugin = "com.diffplug.spotless")
 
   repositories {
     mavenLocal()
@@ -24,8 +28,22 @@ subprojects {
       target(17)
       minimumToolchain(17)
     }
-
     checkstyle("10.8.0")
+  }
+
+  spotless {
+    fun FormatExtension.applyCommon() {
+      trimTrailingWhitespace()
+      indentWithSpaces(2)
+    }
+    java {
+      importOrder("", "\\#")
+      removeUnusedImports()
+      applyCommon()
+    }
+    kotlinGradle {
+      applyCommon()
+    }
   }
 
   dependencies {
@@ -34,6 +52,7 @@ subprojects {
 
   tasks {
     compileJava {
+      dependsOn("spotlessApply")
       dependsOn("checkstyleMain")
       options.compilerArgs.add("-parameters")
     }

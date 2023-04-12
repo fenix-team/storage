@@ -3,10 +3,9 @@ package es.revengenetwork.storage.redis.messenger.pubsub;
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import es.revengenetwork.storage.redis.channel.RedisChannel;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.JedisPubSub;
-
-import java.util.Map;
 
 public class RedisSubChannelPubsub extends JedisPubSub {
   private final String parentChannel;
@@ -57,7 +56,7 @@ public class RedisSubChannelPubsub extends JedisPubSub {
       return;
     }
     final var object = jsonMessage.get("message");
-    final var deserializedObject = this.gson.fromJson(object, channelObject.getType());
+    final var deserializedObject = this.gson.fromJson(object, channelObject.type());
     channelObject.listen(serverId, deserializedObject);
   }
 }

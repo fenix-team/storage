@@ -1,12 +1,11 @@
 package es.revengenetwork.storage.codec;
 
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractObjectModelWriter<This extends ModelWriter<This, WriteType>, WriteType>
   implements ModelWriter<This, WriteType> {

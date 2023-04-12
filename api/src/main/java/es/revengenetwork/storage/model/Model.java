@@ -7,5 +7,5 @@ import org.jetbrains.annotations.NotNull;
  * to implement an identifier to this model and can find it by a simple query.
  */
 public interface Model {
-  @NotNull String getId();
+  @NotNull String id();
 }

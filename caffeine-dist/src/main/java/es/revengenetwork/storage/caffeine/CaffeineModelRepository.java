@@ -3,13 +3,12 @@ package es.revengenetwork.storage.caffeine;
 import com.github.benmanes.caffeine.cache.Cache;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.ModelRepository;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class CaffeineModelRepository<ModelType extends Model> implements ModelRepository<ModelType> {
@@ -67,7 +66,7 @@ public class CaffeineModelRepository<ModelType extends Model> implements ModelRe
 
   @Override
   public @NotNull ModelType saveSync(final @NotNull ModelType model) {
-    this.cache.put(model.getId(), model);
+    this.cache.put(model.id(), model);
     return model;
   }
 

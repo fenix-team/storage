@@ -1,16 +1,15 @@
 package es.revengenetwork.storage.repository;
 
 import es.revengenetwork.storage.model.Model;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public final class LocalModelRepository<ModelType extends Model> implements ModelRepository<ModelType> {
@@ -60,7 +59,7 @@ public final class LocalModelRepository<ModelType extends Model> implements Mode
 
   @Override
   public @NotNull ModelType saveSync(final @NotNull ModelType model) {
-    this.cache.put(model.getId(), model);
+    this.cache.put(model.id(), model);
     return model;
   }
 

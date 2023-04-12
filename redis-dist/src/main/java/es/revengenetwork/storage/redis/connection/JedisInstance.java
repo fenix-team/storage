@@ -24,31 +24,31 @@ public record JedisInstance(@NotNull Jedis listenerConnection, @NotNull JedisPoo
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder setHost(final @NotNull String host) {
+    public @NotNull Builder host(final @NotNull String host) {
       this.host = host;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder setPort(final int port) {
+    public @NotNull Builder port(final int port) {
       this.port = port;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder setPassword(final @NotNull String password) {
+    public @NotNull Builder password(final @NotNull String password) {
       this.password = password;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder setTimeout(final int timeout) {
+    public @NotNull Builder timeout(final int timeout) {
       this.timeout = timeout;
       return this;
     }
 
     @Contract("_ -> this")
-    public @NotNull Builder setConfig(final @NotNull JedisPoolConfig config) {
+    public @NotNull Builder config(final @NotNull JedisPoolConfig config) {
       this.config = config;
       return this;
     }

@@ -6,12 +6,11 @@ import es.revengenetwork.storage.codec.ModelReader;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.AsyncModelRepository;
 import es.revengenetwork.storage.repository.builder.AbstractModelRepositoryBuilder;
+import java.util.concurrent.Executor;
+import java.util.function.Function;
 import org.bson.Document;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.Executor;
-import java.util.function.Function;
 
 @SuppressWarnings("unused")
 public class MongoModelRepositoryBuilder<ModelType extends Model, Reader extends ModelReader<Document>>

@@ -4,10 +4,9 @@ import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.AsyncModelRepository;
 import es.revengenetwork.storage.repository.CachedModelRepository;
 import es.revengenetwork.storage.repository.ModelRepository;
+import java.util.concurrent.Executor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.Executor;
 
 @SuppressWarnings("unused")
 public abstract class AbstractModelRepositoryBuilder<ModelType extends Model> {
