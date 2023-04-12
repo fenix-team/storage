@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class DocumentReader implements ModelReader<Document> {
+  public static final Function<Document, DocumentReader> FACTORY = DocumentReader::new;
   protected final Document document;
 
   protected DocumentReader(final @NotNull Document document) {

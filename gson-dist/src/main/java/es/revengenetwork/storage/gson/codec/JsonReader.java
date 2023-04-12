@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class JsonReader implements ModelReader<JsonObject> {
+  public static final Function<JsonObject, JsonReader> FACTORY = JsonReader::create;
   private static final Map<Class<?>, Function<JsonElement, Object>> READERS = new HashMap<>();
 
   static {
