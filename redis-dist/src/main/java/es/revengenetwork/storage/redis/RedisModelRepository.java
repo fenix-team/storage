@@ -3,8 +3,8 @@ package es.revengenetwork.storage.redis;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import es.revengenetwork.storage.codec.ModelCodec;
-import es.revengenetwork.storage.codec.ModelReader;
+import es.revengenetwork.storage.codec.ModelDeserializer;
+import es.revengenetwork.storage.codec.ModelSerializer;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.AbstractAsyncModelRepository;
 import es.revengenetwork.storage.repository.ModelRepository;
@@ -21,12 +21,10 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 @SuppressWarnings("unused")
-public class RedisModelRepository<ModelType extends Model, Reader extends ModelReader<JsonObject>>
-  extends AbstractAsyncModelRepository<ModelType> {
+public class RedisModelRepository<ModelType extends Model> extends AbstractAsyncModelRepository<ModelType> {
   protected final Gson gson;
-  protected final Function<JsonObject, Reader> readerFactory;
-  protected final ModelCodec.Writer<ModelType, JsonObject> writer;
-  protected final ModelCodec.Reader<ModelType, JsonObject, Reader> reader;
+  protected final ModelSerializer<ModelType, JsonObject> modelSerializer;
+  protected final ModelDeserializer<ModelType, JsonObject> modelDeserializer;
   protected final JedisPool jedisPool;
   protected final String tableName;
   protected final int expireAfterSave;
@@ -35,9 +33,8 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
   protected RedisModelRepository(
     final @NotNull Executor executor,
     final @NotNull Gson gson,
-    final @NotNull Function<JsonObject, Reader> readerFactory,
-    final ModelCodec.@NotNull Writer<ModelType, JsonObject> writer,
-    final ModelCodec.@NotNull Reader<ModelType, JsonObject, Reader> reader,
+    final @NotNull ModelSerializer<ModelType, JsonObject> modelSerializer,
+    final @NotNull ModelDeserializer<ModelType, JsonObject> modelDeserializer,
     final @NotNull JedisPool jedisPool,
     final @NotNull String tableName,
     final int expireAfterSave,
@@ -45,9 +42,8 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
   ) {
     super(executor);
     this.gson = gson;
-    this.readerFactory = readerFactory;
-    this.writer = writer;
-    this.reader = reader;
+    this.modelSerializer = modelSerializer;
+    this.modelDeserializer = modelDeserializer;
     this.jedisPool = jedisPool;
     this.tableName = tableName;
     this.expireAfterSave = expireAfterSave;
@@ -55,15 +51,14 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
   }
 
   @Contract(value = " -> new")
-  public static <T extends Model, R extends ModelReader<JsonObject>>
-  @NotNull RedisModelRepositoryBuilder<T, R> builder() {
+  public static <T extends Model> @NotNull RedisModelRepositoryBuilder<T> builder() {
     return new RedisModelRepositoryBuilder<>();
   }
 
   @Override
   public @NotNull ModelType saveSync(final @NotNull ModelType model) {
     try (final var jedis = this.jedisPool.getResource()) {
-      final var object = this.writer.serialize(model);
+      final var object = this.modelSerializer.serialize(model);
       final var map = new HashMap<String, String>(object.size());
       for (final var entry : object.entrySet()) {
         map.put(entry.getKey(), this.gson.toJson(entry.getValue()));
@@ -167,6 +162,6 @@ public class RedisModelRepository<ModelType extends Model, Reader extends ModelR
     for (final var entry : map.entrySet()) {
       object.add(entry.getKey(), this.gson.fromJson(entry.getValue(), JsonElement.class));
     }
-    return this.reader.deserialize(this.readerFactory.apply(object));
+    return this.modelDeserializer.deserialize(object);
   }
 }

@@ -4,8 +4,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.ReplaceOptions;
-import es.revengenetwork.storage.codec.ModelCodec;
-import es.revengenetwork.storage.codec.ModelReader;
+import es.revengenetwork.storage.codec.ModelDeserializer;
+import es.revengenetwork.storage.codec.ModelSerializer;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.AbstractAsyncModelRepository;
 import java.util.ArrayList;
@@ -19,32 +19,26 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
-public class MongoModelRepository<ModelType extends Model, Reader extends ModelReader<Document>>
-  extends AbstractAsyncModelRepository<ModelType> {
+public class MongoModelRepository<ModelType extends Model> extends AbstractAsyncModelRepository<ModelType> {
   public static final String ID_FIELD = "_id";
-
   protected final MongoCollection<Document> mongoCollection;
-  protected final Function<Document, Reader> readerFactory;
-  protected final ModelCodec.Writer<ModelType, Document> writer;
-  protected final ModelCodec.Reader<ModelType, Document, Reader> modelReader;
+  protected final ModelSerializer<ModelType, Document> modelSerializer;
+  protected final ModelDeserializer<ModelType, Document> modelDeserializer;
 
   protected MongoModelRepository(
     final @NotNull Executor executor,
     final @NotNull MongoCollection<Document> mongoCollection,
-    final @NotNull Function<Document, Reader> readerFactory,
-    final ModelCodec.@NotNull Writer<ModelType, Document> writer,
-    final ModelCodec.@NotNull Reader<ModelType, Document, Reader> modelReader
+    final @NotNull ModelSerializer<ModelType, Document> modelSerializer,
+    final @NotNull ModelDeserializer<ModelType, Document> modelDeserializer
   ) {
     super(executor);
     this.mongoCollection = mongoCollection;
-    this.readerFactory = readerFactory;
-    this.writer = writer;
-    this.modelReader = modelReader;
+    this.modelSerializer = modelSerializer;
+    this.modelDeserializer = modelDeserializer;
   }
 
   @Contract(value = " -> new")
-  public static <T extends Model, R extends ModelReader<Document>>
-  @NotNull MongoModelRepositoryBuilder<T, R> builder() {
+  public static <T extends Model> @NotNull MongoModelRepositoryBuilder<T> builder() {
     return new MongoModelRepositoryBuilder<>();
   }
 
@@ -55,7 +49,7 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
     if (document == null) {
       return null;
     }
-    return this.modelReader.deserialize(this.readerFactory.apply(document));
+    return this.modelDeserializer.deserialize(document);
   }
 
   @Override
@@ -66,7 +60,7 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
   ) {
     final var foundModels = factory.apply(1);
     for (final var document : this.mongoCollection.find(Filters.eq(field, value))) {
-      foundModels.add(this.modelReader.deserialize(this.readerFactory.apply(document)));
+      foundModels.add(this.modelDeserializer.deserialize(document));
     }
     return null;
   }
@@ -89,7 +83,7 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
                             .into(new ArrayList<>());
     final var foundModels = factory.apply(documents.size());
     for (final var document : documents) {
-      final var model = this.modelReader.deserialize(this.readerFactory.apply(document));
+      final var model = this.modelDeserializer.deserialize(document);
       postLoadAction.accept(model);
       foundModels.add(model);
     }
@@ -108,7 +102,7 @@ public class MongoModelRepository<ModelType extends Model, Reader extends ModelR
   public @NotNull ModelType saveSync(final @NotNull ModelType model) {
     this.mongoCollection.replaceOne(
       Filters.eq(ID_FIELD, model.id()),
-      this.writer.serialize(model),
+      this.modelSerializer.serialize(model),
       new ReplaceOptions().upsert(true)
     );
     return model;

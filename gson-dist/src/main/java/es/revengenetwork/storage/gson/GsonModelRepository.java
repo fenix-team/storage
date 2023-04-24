@@ -4,8 +4,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.internal.bind.TypeAdapters;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import es.revengenetwork.storage.codec.ModelCodec;
-import es.revengenetwork.storage.codec.ModelReader;
+import es.revengenetwork.storage.codec.ModelDeserializer;
+import es.revengenetwork.storage.codec.ModelSerializer;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.AbstractAsyncModelRepository;
 import es.revengenetwork.storage.repository.ModelRepository;
@@ -24,37 +24,31 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
-public class GsonModelRepository<ModelType extends Model, Reader extends ModelReader<JsonObject>>
-  extends AbstractAsyncModelRepository<ModelType> {
+public class GsonModelRepository<ModelType extends Model> extends AbstractAsyncModelRepository<ModelType> {
   protected final Class<ModelType> modelType;
   protected final Path folderPath;
   protected final boolean prettyPrinting;
-  protected final ModelCodec.Writer<ModelType, JsonObject> writer;
-  protected final Function<JsonObject, Reader> readerFactory;
-  protected final ModelCodec.Reader<ModelType, JsonObject, Reader> reader;
+  protected final ModelSerializer<ModelType, JsonObject> modelSerializer;
+  protected final ModelDeserializer<ModelType, JsonObject> modelDeserializer;
 
   protected GsonModelRepository(
     final @NotNull Executor executor,
     final @NotNull Class<ModelType> modelType,
     final @NotNull Path folderPath,
     final boolean prettyPrinting,
-    final ModelCodec.@NotNull Writer<ModelType, JsonObject> writer,
-    final @NotNull Function<JsonObject, Reader> readerFactory,
-    final ModelCodec.@NotNull Reader<ModelType, JsonObject, Reader> reader
+    final @NotNull ModelSerializer<ModelType, JsonObject> modelSerializer,
+    final @NotNull ModelDeserializer<ModelType, JsonObject> modelDeserializer
   ) {
     super(executor);
     this.prettyPrinting = prettyPrinting;
     this.modelType = modelType;
     this.folderPath = folderPath;
-    this.writer = writer;
-    this.readerFactory = readerFactory;
-    this.reader = reader;
+    this.modelSerializer = modelSerializer;
+    this.modelDeserializer = modelDeserializer;
   }
 
   @Contract("_ -> new")
-  public static <T extends Model, R extends ModelReader<JsonObject>> @NotNull GsonModelRepositoryBuilder<T, R> builder(
-    final @NotNull Class<T> type
-  ) {
+  public static <T extends Model> @NotNull GsonModelRepositoryBuilder<T> builder(final @NotNull Class<T> type) {
     return new GsonModelRepositoryBuilder<>(type);
   }
 
@@ -134,7 +128,7 @@ public class GsonModelRepository<ModelType extends Model, Reader extends ModelRe
       if (this.prettyPrinting) {
         writer.setIndent("  ");
       }
-      final var jsonObject = this.writer.serialize(model);
+      final var jsonObject = this.modelSerializer.serialize(model);
       TypeAdapters.JSON_ELEMENT.write(writer, jsonObject);
       return model;
     } catch (final IOException e) {
@@ -166,7 +160,7 @@ public class GsonModelRepository<ModelType extends Model, Reader extends ModelRe
         jsonObject.add(reader.nextName(), TypeAdapters.JSON_ELEMENT.read(reader));
       }
       reader.endObject();
-      return this.reader.deserialize(this.readerFactory.apply(jsonObject));
+      return this.modelDeserializer.deserialize(jsonObject);
     } catch (final IOException e) {
       throw new RuntimeException(e);
     }

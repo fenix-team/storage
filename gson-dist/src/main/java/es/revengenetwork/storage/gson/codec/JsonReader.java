@@ -2,7 +2,7 @@ package es.revengenetwork.storage.gson.codec;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import es.revengenetwork.storage.codec.ModelCodec;
+import es.revengenetwork.storage.codec.ModelDeserializer;
 import es.revengenetwork.storage.codec.ModelReader;
 import java.util.Collection;
 import java.util.HashMap;
@@ -98,24 +98,22 @@ public class JsonReader implements ModelReader<JsonObject> {
   }
 
   @Override
-  public <T, R extends ModelReader<JsonObject>> @Nullable T readObject(
+  public <T> @Nullable T readObject(
     final @NotNull String field,
-    final @NotNull Function<JsonObject, R> readerFactory,
-    final ModelCodec.@NotNull Reader<T, JsonObject, R> reader
+    final @NotNull ModelDeserializer<T, JsonObject> modelDeserializer
   ) {
     final JsonElement element = this.jsonObject.get(field);
     if (element == null) {
       return null;
     }
-    return reader.deserialize(readerFactory.apply(element.getAsJsonObject()));
+    return modelDeserializer.deserialize(element.getAsJsonObject());
   }
 
   @Override
-  public @Nullable <K, V, R extends ModelReader<JsonObject>> Map<K, V> readMap(
+  public @Nullable <K, V> Map<K, V> readMap(
     final @NotNull String field,
     final @NotNull Function<V, K> keyParser,
-    final @NotNull Function<JsonObject, R> readerFactory,
-    final ModelCodec.@NotNull Reader<V, JsonObject, R> reader
+    final @NotNull ModelDeserializer<V, JsonObject> modelDeserializer
   ) {
     final var element = this.jsonObject.get(field);
     if (element == null) {
@@ -124,18 +122,17 @@ public class JsonReader implements ModelReader<JsonObject> {
     final var array = element.getAsJsonArray();
     final var map = new HashMap<K, V>(array.size());
     for (final var arrayElement : array) {
-      final var value = reader.deserialize(readerFactory.apply(arrayElement.getAsJsonObject()));
+      final var value = modelDeserializer.deserialize(arrayElement.getAsJsonObject());
       map.put(keyParser.apply(value), value);
     }
     return map;
   }
 
   @Override
-  public <T, C extends Collection<T>, R extends ModelReader<JsonObject>> @Nullable C readCollection(
+  public <T, C extends Collection<T>> @Nullable C readCollection(
     final @NotNull String field,
-    final ModelCodec.@NotNull Reader<T, JsonObject, R> reader,
-    final @NotNull Function<JsonObject, R> readerFactory,
-    final @NotNull Function<Integer, C> collectionFactory
+    final @NotNull Function<Integer, C> collectionFactory,
+    final @NotNull ModelDeserializer<T, JsonObject> modelDeserializer
   ) {
     final var array = this.jsonObject.getAsJsonArray(field);
     if (array == null) {
@@ -143,7 +140,7 @@ public class JsonReader implements ModelReader<JsonObject> {
     }
     final var objects = collectionFactory.apply(array.size());
     for (final var element : array) {
-      final var object = reader.deserialize(readerFactory.apply(element.getAsJsonObject()));
+      final var object = modelDeserializer.deserialize(element.getAsJsonObject());
       objects.add(object);
     }
     return objects;

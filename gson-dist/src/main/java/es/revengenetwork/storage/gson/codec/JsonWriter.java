@@ -3,7 +3,7 @@ package es.revengenetwork.storage.gson.codec;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import es.revengenetwork.storage.codec.ModelCodec;
+import es.revengenetwork.storage.codec.ModelSerializer;
 import es.revengenetwork.storage.codec.ModelWriter;
 import java.util.Collection;
 import java.util.UUID;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
-public class JsonWriter implements ModelWriter<JsonWriter, JsonObject> {
+public class JsonWriter implements ModelWriter<JsonObject> {
   private final JsonObject jsonObject;
 
   protected JsonWriter(final @NotNull JsonObject jsonObject) {
@@ -30,18 +30,21 @@ public class JsonWriter implements ModelWriter<JsonWriter, JsonObject> {
     return new JsonWriter(jsonObject);
   }
 
+  @Override
   @Contract("_, _ -> this")
   public @NotNull JsonWriter writeDetailedUuid(
     final @NotNull String key,
     final @Nullable UUID uuid
   ) {
-    if (uuid == null) {
+    final var serializedUuid = this.writeDetailedUuid(uuid);
+    if (serializedUuid == null) {
       return this;
     }
-    this.jsonObject.add(key, this.writeDetailedUuid(uuid));
+    this.jsonObject.add(key, serializedUuid);
     return this;
   }
 
+  @Override
   @Contract("_, _ -> this")
   public @NotNull JsonWriter writeDetailedUuids(
     final @NotNull String key,
@@ -136,12 +139,12 @@ public class JsonWriter implements ModelWriter<JsonWriter, JsonObject> {
   public <T> @NotNull JsonWriter writeObject(
     final @NotNull String field,
     final @Nullable T child,
-    final ModelCodec.@NotNull Writer<T, JsonObject> writer
+    final @NotNull ModelSerializer<T, JsonObject> modelSerializer
   ) {
     if (child == null) {
       return this;
     }
-    this.jsonObject.add(field, writer.serialize(child));
+    this.jsonObject.add(field, modelSerializer.serialize(child));
     return this;
   }
 
@@ -170,14 +173,14 @@ public class JsonWriter implements ModelWriter<JsonWriter, JsonObject> {
   public <T> @NotNull JsonWriter writeCollection(
     final @NotNull String field,
     final @Nullable Collection<T> children,
-    final ModelCodec.@NotNull Writer<T, JsonObject> writer
+    final @NotNull ModelSerializer<T, JsonObject> modelSerializer
   ) {
     if (children == null) {
       return this;
     }
     final var array = new JsonArray(children.size());
     for (final var child : children) {
-      array.add(writer.serialize(child));
+      array.add(modelSerializer.serialize(child));
     }
     this.jsonObject.add(field, array);
     return this;
@@ -197,12 +200,6 @@ public class JsonWriter implements ModelWriter<JsonWriter, JsonObject> {
       array.add(writer.apply(child));
     }
     this.jsonObject.add(field, array);
-    return this;
-  }
-
-  @Override
-  @Contract("_, _ -> this")
-  public @NotNull JsonWriter writeObject(final @NotNull String field, final Object value) {
     return this;
   }
 

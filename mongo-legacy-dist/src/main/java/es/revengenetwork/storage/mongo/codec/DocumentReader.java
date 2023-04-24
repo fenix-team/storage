@@ -1,6 +1,6 @@
 package es.revengenetwork.storage.mongo.codec;
 
-import es.revengenetwork.storage.codec.ModelCodec;
+import es.revengenetwork.storage.codec.ModelDeserializer;
 import es.revengenetwork.storage.codec.ModelReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,24 +74,22 @@ public class DocumentReader implements ModelReader<Document> {
   }
 
   @Override
-  public <T, R extends ModelReader<Document>> @Nullable T readObject(
+  public <T> @Nullable T readObject(
     final @NotNull String field,
-    final @NotNull Function<Document, R> readerFactory,
-    final ModelCodec.@NotNull Reader<T, Document, R> reader
+    final @NotNull ModelDeserializer<T, Document> modelDeserializer
   ) {
     final var child = this.document.get(field, Document.class);
     if (child == null) {
       return null;
     }
-    return reader.deserialize(readerFactory.apply(child));
+    return modelDeserializer.deserialize(child);
   }
 
   @Override
-  public @Nullable <K, V, R extends ModelReader<Document>> Map<K, V> readMap(
+  public @Nullable <K, V> Map<K, V> readMap(
     final @NotNull String field,
     final @NotNull Function<V, K> keyParser,
-    final @NotNull Function<Document, R> readerFactory,
-    final ModelCodec.@NotNull Reader<V, Document, R> reader
+    final @NotNull ModelDeserializer<V, Document> reader
   ) {
     final var documents = this.readRawCollection(field, Document.class, ArrayList::new);
     if (documents == null) {
@@ -99,18 +97,17 @@ public class DocumentReader implements ModelReader<Document> {
     }
     final var map = new HashMap<K, V>(documents.size());
     for (final var document : documents) {
-      final var value = reader.deserialize(readerFactory.apply(document));
+      final var value = reader.deserialize(document);
       map.put(keyParser.apply(value), value);
     }
     return map;
   }
 
   @Override
-  public <T, C extends Collection<T>, R extends ModelReader<Document>> @Nullable C readCollection(
+  public <T, C extends Collection<T>> @Nullable C readCollection(
     final @NotNull String field,
-    final ModelCodec.@NotNull Reader<T, Document, R> reader,
-    final @NotNull Function<Document, R> readerFactory,
-    final @NotNull Function<Integer, C> collectionFactory
+    final @NotNull Function<Integer, C> collectionFactory,
+    final @NotNull ModelDeserializer<T, Document> modelDeserializer
   ) {
     final var documents = this.readRawCollection(field, Document.class, ArrayList::new);
     if (documents == null) {
@@ -118,7 +115,7 @@ public class DocumentReader implements ModelReader<Document> {
     }
     final var children = collectionFactory.apply(documents.size());
     for (final var document : documents) {
-      children.add(reader.deserialize(readerFactory.apply(document)));
+      children.add(modelDeserializer.deserialize(document));
     }
     return children;
   }

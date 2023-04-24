@@ -1,61 +1,51 @@
 package es.revengenetwork.storage.mongo;
 
 import com.mongodb.client.MongoDatabase;
-import es.revengenetwork.storage.codec.ModelCodec;
-import es.revengenetwork.storage.codec.ModelReader;
+import es.revengenetwork.storage.codec.ModelDeserializer;
+import es.revengenetwork.storage.codec.ModelSerializer;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.AsyncModelRepository;
 import es.revengenetwork.storage.repository.builder.AbstractModelRepositoryBuilder;
 import java.util.concurrent.Executor;
-import java.util.function.Function;
 import org.bson.Document;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
-public class MongoModelRepositoryBuilder<ModelType extends Model, Reader extends ModelReader<Document>>
+public final class MongoModelRepositoryBuilder<ModelType extends Model>
   extends AbstractModelRepositoryBuilder<ModelType> {
   private MongoDatabase database;
   private String collectionName;
-  private Function<Document, Reader> readerFactory;
-  private ModelCodec.Writer<ModelType, Document> modelWriter;
-  private ModelCodec.Reader<ModelType, Document, Reader> modelReader;
+  private ModelSerializer<ModelType, Document> modelSerializer;
+  private ModelDeserializer<ModelType, Document> modelDeserializer;
 
-  protected MongoModelRepositoryBuilder() {
+  MongoModelRepositoryBuilder() {
   }
 
   @Contract("_ -> this")
-  public @NotNull MongoModelRepositoryBuilder<ModelType, Reader> database(final @NotNull MongoDatabase database) {
+  public @NotNull MongoModelRepositoryBuilder<ModelType> database(final @NotNull MongoDatabase database) {
     this.database = database;
     return this;
   }
 
   @Contract("_ -> this")
-  public @NotNull MongoModelRepositoryBuilder<ModelType, Reader> modelReader(
-    final ModelCodec.@NotNull Reader<ModelType, Document, Reader> modelReader
+  public @NotNull MongoModelRepositoryBuilder<ModelType> modelSerializer(
+    final @NotNull ModelSerializer<ModelType, Document> modelSerializer
   ) {
-    this.modelReader = modelReader;
+    this.modelSerializer = modelSerializer;
     return this;
   }
 
   @Contract("_ -> this")
-  public @NotNull MongoModelRepositoryBuilder<ModelType, Reader> modelWriter(
-    final ModelCodec.@NotNull Writer<ModelType, Document> modelWriter
+  public @NotNull MongoModelRepositoryBuilder<ModelType> modelDeserializer(
+    final @NotNull ModelDeserializer<ModelType, Document> modelDeserializer
   ) {
-    this.modelWriter = modelWriter;
+    this.modelDeserializer = modelDeserializer;
     return this;
   }
 
   @Contract("_ -> this")
-  public @NotNull MongoModelRepositoryBuilder<ModelType, Reader> readerFactory(
-    final @NotNull Function<Document, Reader> readerFactory
-  ) {
-    this.readerFactory = readerFactory;
-    return this;
-  }
-
-  @Contract("_ -> this")
-  public @NotNull MongoModelRepositoryBuilder<ModelType, Reader> collection(final @NotNull String collection) {
+  public @NotNull MongoModelRepositoryBuilder<ModelType> collection(final @NotNull String collection) {
     this.collectionName = collection;
     return this;
   }
@@ -63,6 +53,6 @@ public class MongoModelRepositoryBuilder<ModelType extends Model, Reader extends
   @Contract("_ -> new")
   public @NotNull AsyncModelRepository<ModelType> build(final @NotNull Executor executor) {
     final var collection = this.database.getCollection(this.collectionName);
-    return new MongoModelRepository<>(executor, collection, this.readerFactory, this.modelWriter, this.modelReader);
+    return new MongoModelRepository<>(executor, collection, this.modelSerializer, this.modelDeserializer);
   }
 }

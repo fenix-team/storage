@@ -9,15 +9,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
-public interface ModelWriter<This extends ModelWriter<This, WriteType>, WriteType> {
+public interface ModelWriter<WriteType> {
   @Contract("_, _ -> this")
-  @NotNull This writeThis(final @NotNull String key, final @Nullable WriteType value);
+  @NotNull ModelWriter<WriteType> writeThis(final @NotNull String key, final @Nullable WriteType value);
 
   @Contract("_, _ -> this")
-  @NotNull This writeUuid(final @NotNull String field, final @Nullable UUID uuid);
+  @NotNull ModelWriter<WriteType> writeDetailedUuid(final @NotNull String key, final @Nullable UUID uuid);
 
   @Contract("_, _ -> this")
-  default @NotNull This writeDate(final @NotNull String field, final @Nullable Date date) {
+  @NotNull ModelWriter<WriteType> writeDetailedUuids(
+    final @NotNull String key,
+    final @Nullable Collection<@NotNull UUID> uuids
+  );
+
+  @Contract("_, _ -> this")
+  @NotNull ModelWriter<WriteType> writeUuid(final @NotNull String field, final @Nullable UUID uuid);
+
+  @Contract("_, _ -> this")
+  default @NotNull ModelWriter<WriteType> writeDate(final @NotNull String field, final @Nullable Date date) {
     if (date == null) {
       return this.writeNumber(field, null);
     }
@@ -25,48 +34,45 @@ public interface ModelWriter<This extends ModelWriter<This, WriteType>, WriteTyp
   }
 
   @Contract("_, _ -> this")
-  @NotNull This writeString(final @NotNull String field, final @Nullable String value);
+  @NotNull ModelWriter<WriteType> writeString(final @NotNull String field, final @Nullable String value);
 
   @Contract("_, _ -> this")
-  @NotNull This writeNumber(final @NotNull String field, final @Nullable Number value);
+  @NotNull ModelWriter<WriteType> writeNumber(final @NotNull String field, final @Nullable Number value);
 
   @Contract("_, _ -> this")
-  @NotNull This writeBoolean(final @NotNull String field, final @Nullable Boolean value);
+  @NotNull ModelWriter<WriteType> writeBoolean(final @NotNull String field, final @Nullable Boolean value);
 
   @Contract("_, _, _ -> this")
-  <T> @NotNull This writeObject(
+  <T> @NotNull ModelWriter<WriteType> writeObject(
     final @NotNull String field,
     final @Nullable T child,
-    final ModelCodec.@NotNull Writer<T, WriteType> writer
+    final @NotNull ModelSerializer<T, WriteType> modelSerializer
   );
 
   @Contract("_, _ -> this")
-  @NotNull <T> This writeRawCollection(
+  @NotNull <T> ModelWriter<WriteType> writeRawCollection(
     final @NotNull String field,
     final @Nullable Collection<T> children
   );
 
   @Contract("_, _, _ -> this")
-  @NotNull <T> This writeCollection(
+  @NotNull <T> ModelWriter<WriteType> writeCollection(
     final @NotNull String field,
     final @Nullable Collection<T> children,
-    final ModelCodec.@NotNull Writer<T, WriteType> writer
+    final @NotNull ModelSerializer<T, WriteType> modelSerializer
   );
 
   @Contract("_, _, _ -> this")
-  default <T> @NotNull This writeMap(
+  default <T> @NotNull ModelWriter<WriteType> writeMap(
     final @NotNull String field,
     final @Nullable Map<?, T> children,
-    final ModelCodec.@NotNull Writer<T, WriteType> writer
+    final @NotNull ModelSerializer<T, WriteType> modelSerializer
   ) {
     if (children == null) {
-      return this.writeCollection(field, null, writer);
+      return this.writeCollection(field, null, modelSerializer);
     }
-    return this.writeCollection(field, children.values(), writer);
+    return this.writeCollection(field, children.values(), modelSerializer);
   }
-
-  @Contract("_, _ -> this")
-  @NotNull This writeObject(final @NotNull String field, final @Nullable Object value);
 
   @NotNull WriteType current();
 

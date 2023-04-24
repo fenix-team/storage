@@ -1,64 +1,54 @@
 package es.revengenetwork.storage.gson;
 
 import com.google.gson.JsonObject;
-import es.revengenetwork.storage.codec.ModelCodec;
-import es.revengenetwork.storage.codec.ModelReader;
+import es.revengenetwork.storage.codec.ModelDeserializer;
+import es.revengenetwork.storage.codec.ModelSerializer;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.AsyncModelRepository;
-import es.revengenetwork.storage.repository.CachedModelRepository;
-import es.revengenetwork.storage.repository.ModelRepository;
+import es.revengenetwork.storage.repository.builder.AbstractModelRepositoryBuilder;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Executor;
-import java.util.function.Function;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
-public final class GsonModelRepositoryBuilder<ModelType extends Model, Reader extends ModelReader<JsonObject>> {
+public final class GsonModelRepositoryBuilder<ModelType extends Model>
+  extends AbstractModelRepositoryBuilder<ModelType> {
   private final Class<ModelType> modelType;
   private Path folderPath;
   private boolean prettyPrinting;
-  private ModelCodec.Writer<ModelType, JsonObject> writer;
-  private Function<JsonObject, Reader> readerFactory;
-  private ModelCodec.Reader<ModelType, JsonObject, Reader> reader;
+  private ModelSerializer<ModelType, JsonObject> writer;
+  private ModelDeserializer<ModelType, JsonObject> reader;
 
   GsonModelRepositoryBuilder(final @NotNull Class<ModelType> type) {
     this.modelType = type;
   }
 
   @Contract("_ -> this")
-  public @NotNull GsonModelRepositoryBuilder<ModelType, Reader> folder(final @NotNull Path folderPath) {
+  public @NotNull GsonModelRepositoryBuilder<ModelType> folder(final @NotNull Path folderPath) {
     this.folderPath = folderPath;
     return this;
   }
 
   @Contract("_ -> this")
-  public @NotNull GsonModelRepositoryBuilder<ModelType, Reader> prettyPrinting(final boolean prettyPrinting) {
+  public @NotNull GsonModelRepositoryBuilder<ModelType> prettyPrinting(final boolean prettyPrinting) {
     this.prettyPrinting = prettyPrinting;
     return this;
   }
 
   @Contract("_ -> this")
-  public @NotNull GsonModelRepositoryBuilder<ModelType, Reader> modelWriter(
-    final ModelCodec.@NotNull Writer<ModelType, JsonObject> writer
+  public @NotNull GsonModelRepositoryBuilder<ModelType> modelSerializer(
+    final @NotNull ModelSerializer<ModelType, JsonObject> writer
   ) {
     this.writer = writer;
     return this;
   }
 
   @Contract("_ -> this")
-  public @NotNull GsonModelRepositoryBuilder<ModelType, Reader> readerFactory(
-    final @NotNull Function<JsonObject, Reader> readerFactory
-  ) {
-    this.readerFactory = readerFactory;
-    return this;
-  }
-
-  @Contract("_ -> this")
-  public @NotNull GsonModelRepositoryBuilder<ModelType, Reader> modelReader(
-    final ModelCodec.@NotNull Reader<ModelType, JsonObject, Reader> reader
+  public @NotNull GsonModelRepositoryBuilder<ModelType> modelDeserializer(
+    final @NotNull ModelDeserializer<ModelType, JsonObject> reader
   ) {
     this.reader = reader;
     return this;
@@ -79,15 +69,6 @@ public final class GsonModelRepositoryBuilder<ModelType extends Model, Reader ex
       this.folderPath,
       this.prettyPrinting,
       this.writer,
-      this.readerFactory,
       this.reader);
-  }
-
-  @Contract("_, _ -> new")
-  public @NotNull CachedModelRepository<ModelType> buildCached(
-    final @NotNull Executor executor,
-    final @NotNull ModelRepository<ModelType> cacheModelRepository
-  ) {
-    return new CachedModelRepository<>(executor, cacheModelRepository, this.build(executor));
   }
 }

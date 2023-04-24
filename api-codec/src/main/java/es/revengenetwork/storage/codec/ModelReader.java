@@ -90,23 +90,20 @@ public interface ModelReader<ReadType> {
     final @NotNull Function<Integer, C> collectionFactory
   );
 
-  <T, R extends ModelReader<ReadType>> @Nullable T readObject(
+  <T> @Nullable T readObject(
     final @NotNull String field,
-    final @NotNull Function<ReadType, R> readerFactory,
-    final ModelCodec.@NotNull Reader<T, ReadType, R> reader
+    final @NotNull ModelDeserializer<T, ReadType> modelDeserializer
   );
 
-  <K, V, R extends ModelReader<ReadType>> @Nullable Map<K, V> readMap(
+  <K, V> @Nullable Map<K, V> readMap(
     final @NotNull String field,
     final @NotNull Function<V, K> keyParser,
-    final @NotNull Function<ReadType, R> readerFactory,
-    final ModelCodec.@NotNull Reader<V, ReadType, R> reader
+    final @NotNull ModelDeserializer<V, ReadType> modelDeserializer
   );
 
-  <T, C extends Collection<T>, R extends ModelReader<ReadType>> @Nullable C readCollection(
+  <T, C extends Collection<T>> @Nullable C readCollection(
     final @NotNull String field,
-    final ModelCodec.@NotNull Reader<T, ReadType, R> reader,
-    final @NotNull Function<ReadType, R> readerFactory,
-    final @NotNull Function<Integer, C> collectionFactory
+    final @NotNull Function<Integer, C> collectionFactory,
+    final @NotNull ModelDeserializer<T, ReadType> modelDeserializer
   );
 }
