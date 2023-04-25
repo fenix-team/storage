@@ -163,6 +163,7 @@ public class JsonReader implements ModelReader<JsonObject> {
     return objects;
   }
 
+  @Override
   public @Nullable UUID readDetailedUuid(final @NotNull String field) {
     final var element = this.jsonObject.get(field);
     if (!(element instanceof JsonObject serializedUuid)) {
@@ -171,6 +172,7 @@ public class JsonReader implements ModelReader<JsonObject> {
     return this.readDetailedUuid(serializedUuid);
   }
 
+  @Override
   public @Nullable <C extends Collection<UUID>> C readDetailedUuids(
     final @NotNull String field,
     final @NotNull Function<Integer, C> factory
@@ -179,7 +181,7 @@ public class JsonReader implements ModelReader<JsonObject> {
     if (array == null) {
       return null;
     }
-    final C uuids = factory.apply(array.size());
+    final var uuids = factory.apply(array.size());
     for (final var element : array) {
       if (!(element instanceof JsonObject serializedUuid)) {
         continue;

@@ -22,6 +22,13 @@ public interface ModelReader<ReadType> {
     return UUID.fromString(uuidString);
   }
 
+  @Nullable UUID readDetailedUuid(final @NotNull String field);
+
+  @Nullable <C extends Collection<UUID>> C readDetailedUuids(
+    final @NotNull String field,
+    final @NotNull Function<Integer, C> factory
+  );
+
   default @Nullable Date readDate(final @NotNull String field) {
     final var value = this.readNumber(field);
     if (value == null) {

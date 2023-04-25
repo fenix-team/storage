@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import org.bson.Document;
 import org.jetbrains.annotations.Contract;
@@ -35,6 +36,39 @@ public class DocumentReader implements ModelReader<Document> {
   @Override
   public @Nullable Document readThis(final @NotNull String field) {
     return this.document.get(field, Document.class);
+  }
+
+  @Override
+  public @Nullable UUID readDetailedUuid(final @NotNull String field) {
+    return this.readDetailedUuid(this.readThis(field));
+  }
+
+  @Override
+  public @Nullable <C extends Collection<UUID>> C readDetailedUuids(
+    final @NotNull String field,
+    final @NotNull Function<Integer, C> factory
+  ) {
+    final var documents = this.readRawCollection(field, Document.class, ArrayList::new);
+    if (documents == null) {
+      return null;
+    }
+    final var uuids = factory.apply(documents.size());
+    for (final var document : documents) {
+      final var uuid = this.readDetailedUuid(document);
+      if (uuid != null) {
+        uuids.add(uuid);
+      }
+    }
+    return uuids;
+  }
+
+  private @Nullable UUID readDetailedUuid(final @Nullable Document document) {
+    if (document == null) {
+      return null;
+    }
+    final var most = document.getLong("most");
+    final var least = document.getLong("least");
+    return new UUID(most, least);
   }
 
   @Override
