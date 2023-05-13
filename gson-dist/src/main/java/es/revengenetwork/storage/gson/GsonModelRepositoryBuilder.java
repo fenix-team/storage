@@ -58,7 +58,7 @@ public final class GsonModelRepositoryBuilder<ModelType extends Model>
   public @NotNull AsyncModelRepository<ModelType> build(final @NotNull Executor executor) {
     if (Files.notExists(this.folderPath)) {
       try {
-        Files.createDirectory(this.folderPath);
+        Files.createDirectories(this.folderPath);
       } catch (final IOException e) {
         throw new RuntimeException(e);
       }
