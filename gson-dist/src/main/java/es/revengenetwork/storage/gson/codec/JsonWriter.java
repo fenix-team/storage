@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import es.revengenetwork.storage.codec.ModelSerializer;
 import es.revengenetwork.storage.codec.ModelWriter;
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import org.jetbrains.annotations.Contract;
@@ -200,6 +201,23 @@ public class JsonWriter implements ModelWriter<JsonObject> {
       array.add(writer.apply(child));
     }
     this.jsonObject.add(field, array);
+    return this;
+  }
+
+  public <K, V> @NotNull JsonWriter writePrimitiveMap(
+    final @NotNull String field,
+    final @Nullable Map<K, V> map,
+    final @NotNull Function<K, String> keyWriter,
+    final @NotNull Function<V, JsonElement> valueWriter
+  ) {
+    if (map == null) {
+      return this;
+    }
+    final var object = new JsonObject();
+    for (final var entry : map.entrySet()) {
+      object.add(keyWriter.apply(entry.getKey()), valueWriter.apply(entry.getValue()));
+    }
+    this.jsonObject.add(field, object);
     return this;
   }
 

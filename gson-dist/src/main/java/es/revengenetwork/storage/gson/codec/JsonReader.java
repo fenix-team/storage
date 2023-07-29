@@ -192,6 +192,26 @@ public class JsonReader implements ModelReader<JsonObject> {
     return uuids;
   }
 
+  public <K, V, M extends Map<K, V>> @Nullable M readPrimitiveMap(
+    final @NotNull String field,
+    final @NotNull Function<String, K> keyParser,
+    final @NotNull Function<JsonElement, V> valueParser,
+    final @NotNull Function<Integer, M> mapFactory
+  ) {
+    final var element = this.jsonObject.get(field);
+    if (!(element instanceof JsonObject object)) {
+      return null;
+    }
+    final var entrySet = object.entrySet();
+    final var map = mapFactory.apply(entrySet.size());
+    for (final var entry : entrySet) {
+      final var key = keyParser.apply(entry.getKey());
+      final var value = valueParser.apply(entry.getValue());
+      map.put(key, value);
+    }
+    return map;
+  }
+
   public @Nullable UUID readDetailedUuid(final @NotNull JsonObject serializedUuid) {
     final var mostSignificantBitsElement = serializedUuid.get("most");
     final var leastSignificantBitsElement = serializedUuid.get("least");
