@@ -26,6 +26,14 @@ public class CachedModelRepository<ModelType extends Model> extends AbstractAsyn
     this.persistModelRepository = persistModelRepository;
   }
 
+  public @NotNull ModelRepository<ModelType> cacheModelRepository() {
+    return this.cacheModelRepository;
+  }
+
+  public @NotNull ModelRepository<ModelType> persistModelRepository() {
+    return this.persistModelRepository;
+  }
+
   public @Nullable ModelType findAndCacheSync(final @NotNull String id) {
     final var model = this.findSync(id);
     if (model == null) {
