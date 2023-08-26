@@ -19,6 +19,10 @@ public final class LocalModelRepository<ModelType extends Model> implements Mode
     this.cache = cache;
   }
 
+  public @NotNull Map<String, ModelType> cache() {
+    return this.cache;
+  }
+
   @Override
   public @Nullable ModelType findSync(final @NotNull String id) {
     return this.cache.get(id);
