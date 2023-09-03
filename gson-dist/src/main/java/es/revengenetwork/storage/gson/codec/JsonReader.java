@@ -163,6 +163,24 @@ public class JsonReader implements ModelReader<JsonObject> {
     return objects;
   }
 
+  public <T> @Nullable T[] readPrimitiveArray(
+    final @NotNull String field,
+    final @NotNull Function<JsonElement, T> reader,
+    final @NotNull Function<Integer, T[]> arrayFactory
+  ) {
+    final var array = this.jsonObject.getAsJsonArray(field);
+    if (array == null) {
+      return null;
+    }
+    final var objects = arrayFactory.apply(array.size());
+    for (int i = 0; i < array.size(); i++) {
+      final var element = array.get(i);
+      final var object = reader.apply(element);
+      objects[i] = object;
+    }
+    return objects;
+  }
+
   @Override
   public @Nullable UUID readDetailedUuid(final @NotNull String field) {
     final var element = this.jsonObject.get(field);

@@ -204,6 +204,22 @@ public class JsonWriter implements ModelWriter<JsonObject> {
     return this;
   }
 
+  public <T> @NotNull JsonWriter writePrimitiveArray(
+    final @NotNull String field,
+    final @Nullable T[] children,
+    final @NotNull Function<T, JsonElement> writer
+  ) {
+    if (children == null) {
+      return this;
+    }
+    final var array = new JsonArray(children.length);
+    for (final var child : children) {
+      array.add(writer.apply(child));
+    }
+    this.jsonObject.add(field, array);
+    return this;
+  }
+
   public <K, V> @NotNull JsonWriter writePrimitiveMap(
     final @NotNull String field,
     final @Nullable Map<K, V> map,
