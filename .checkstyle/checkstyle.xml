@@ -15,8 +15,8 @@
     <property name="eachLine" value="true"/>
   </module>
 
-<!--  &lt;!&ndash; https://checkstyle.org/config_javadoc.html#JavadocPackage &ndash;&gt;-->
-<!--  <module name="JavadocPackage"/>-->
+  <!-- https://checkstyle.org/config_javadoc.html#JavadocPackage -->
+  <module name="JavadocPackage"/>
 
   <!-- https://checkstyle.org/config_misc.html#NewlineAtEndOfFile -->
   <module name="NewlineAtEndOfFile"/>
@@ -155,14 +155,14 @@
     <!-- https://checkstyle.org/config_whitespace.html#MethodParamPad -->
     <module name="MethodParamPad"/>
 
-<!--    &lt;!&ndash; https://checkstyle.org/config_javadoc.html#MissingJavadocMethod &ndash;&gt;-->
-<!--    <module name="MissingJavadocMethod"/>-->
+    <!-- https://checkstyle.org/config_javadoc.html#MissingJavadocMethod -->
+    <module name="MissingJavadocMethod"/>
 
-<!--    &lt;!&ndash; https://checkstyle.org/config_javadoc.html#MissingJavadocPackage &ndash;&gt;-->
-<!--    <module name="MissingJavadocPackage"/>-->
+    <!-- https://checkstyle.org/config_javadoc.html#MissingJavadocPackage -->
+    <module name="MissingJavadocPackage"/>
 
-<!--    &lt;!&ndash; https://checkstyle.org/config_javadoc.html#MissingJavadocType &ndash;&gt;-->
-<!--    <module name="MissingJavadocType"/>-->
+    <!-- https://checkstyle.org/config_javadoc.html#MissingJavadocType -->
+    <module name="MissingJavadocType"/>
 
     <!-- https://checkstyle.org/config_coding.html#MultipleVariableDeclarations -->
     <module name="MultipleVariableDeclarations"/>
@@ -244,8 +244,8 @@
       <property name="validateComments" value="true"/>
     </module>
 
-<!--    &lt;!&ndash; https://checkstyle.org/config_javadoc.html#SummaryJavadoc &ndash;&gt;-->
-<!--    <module name="SummaryJavadoc"/>-->
+    <!-- https://checkstyle.org/config_javadoc.html#SummaryJavadoc -->
+    <module name="SummaryJavadoc"/>
 
     <!-- https://checkstyle.org/config_annotation.html#SuppressWarningsHolder -->
     <module name="SuppressWarningsHolder"/>
@@ -274,16 +274,18 @@
     -->
 
     <!-- https://gitlab.com/stellardrift/stylecheck/-/blob/trunk/src/main/java/ca/stellardrift/stylecheck/AnnotationsCloseToType.java -->
-    <module name="AnnotationsCloseToType"/>
+    <module name="AnnotationsCloseToType">
+      <property name="typeUseAnnotations" value="NotNull, Nullable, Pattern, RegExp, KeyPattern, KeyPattern.Namespace, KeyPattern.Value"/>
+    </module>
 
-<!--    &lt;!&ndash; https://checkstyle.org/config_javadoc.html#WriteTag &ndash;&gt;-->
-<!--    &lt;!&ndash; https://gitlab.com/stellardrift/stylecheck/-/blob/trunk/src/main/java/ca/stellardrift/stylecheck/FilteringWriteTag.java &ndash;&gt;-->
-<!--    <module name="FilteringWriteTag">-->
-<!--      <property name="tag" value="@since\s"/>-->
-<!--      <property name="tagFormat" value="\d\.\d+\.\d+"/>-->
-<!--      <property name="tagSeverity" value="ignore"/>-->
-<!--      <property name="minimumScope" value="public"/>-->
-<!--      <property name="tokens" value="INTERFACE_DEF, CLASS_DEF, ENUM_DEF, ANNOTATION_DEF, RECORD_DEF, METHOD_DEF, CTOR_DEF, ANNOTATION_FIELD_DEF, RECORD_DEF, COMPACT_CTOR_DEF"/>-->
-<!--    </module>-->
+    <!-- https://checkstyle.org/config_javadoc.html#WriteTag -->
+    <!-- https://gitlab.com/stellardrift/stylecheck/-/blob/trunk/src/main/java/ca/stellardrift/stylecheck/FilteringWriteTag.java -->
+    <module name="FilteringWriteTag">
+      <property name="tag" value="@since\s"/>
+      <property name="tagFormat" value="\d\.\d+\.\d+"/>
+      <property name="tagSeverity" value="ignore"/>
+      <property name="minimumScope" value="public"/>
+      <property name="tokens" value="INTERFACE_DEF, CLASS_DEF, ENUM_DEF, ANNOTATION_DEF, RECORD_DEF, METHOD_DEF, CTOR_DEF, ANNOTATION_FIELD_DEF, RECORD_DEF, COMPACT_CTOR_DEF"/>
+    </module>
   </module>
 </module>

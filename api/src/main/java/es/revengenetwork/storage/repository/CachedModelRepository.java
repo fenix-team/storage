@@ -163,15 +163,6 @@ public class CachedModelRepository<ModelType extends Model> extends AbstractAsyn
   }
 
   @Override
-  public <C extends Collection<ModelType>> @Nullable C findSync(
-    final @NotNull String field,
-    final @NotNull String value,
-    final @NotNull Function<Integer, C> factory
-  ) {
-    return this.persistModelRepository.findSync(field, value, factory);
-  }
-
-  @Override
   public @Nullable Collection<String> findIdsSync() {
     return this.persistModelRepository.findIdsSync();
   }

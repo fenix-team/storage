@@ -12,12 +12,6 @@ import org.jetbrains.annotations.Nullable;
 public interface AsyncModelRepository<ModelType extends Model> extends ModelRepository<ModelType> {
   @NotNull CompletableFuture<@Nullable ModelType> find(final @NotNull String id);
 
-  <C extends Collection<ModelType>> @NotNull CompletableFuture<@Nullable C> find(
-    final @NotNull String field,
-    final @NotNull String value,
-    final @NotNull Function<Integer, C> factory
-  );
-
   @NotNull CompletableFuture<@Nullable Collection<String>> findIds();
 
   <C extends Collection<ModelType>> @NotNull CompletableFuture<@Nullable C> findAll(
