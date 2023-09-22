@@ -6,3 +6,9 @@ indent_size = 2
 indent_style = space
 insert_final_newline = true
 max_line_length = off
+
+[*.java]
+ij_java_generate_final_parameters = true
+ij_java_do_not_wrap_after_single_annotation = true
+ij_java_do_not_wrap_after_single_annotation_in_parameter = true
+ij_java_keep_simple_lambdas_in_one_line = true

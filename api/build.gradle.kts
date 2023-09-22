@@ -1,3 +1,7 @@
+plugins {
+  id("storage.common-conventions")
+}
+
 dependencies {
-  compileOnlyApi("org.jetbrains:annotations:24.0.0")
+  compileOnlyApi(libs.annotations)
 }
