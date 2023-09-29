@@ -6,8 +6,8 @@ val libs = extensions.getByType(org.gradle.accessors.dm.LibrariesForLibs::class)
 
 indra {
   javaVersions {
-    target(11)
-    minimumToolchain(11)
+    target(17)
+    minimumToolchain(17)
     strictVersions(true)
   }
   checkstyle(libs.versions.checkstyle.get())

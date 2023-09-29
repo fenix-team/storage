@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.IntFunction;
 import org.fenixteam.storage.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -119,11 +119,11 @@ public final class MapModelRepository<ModelType extends Model> implements ModelR
    * Returns a the {@link Map#keySet()} of the {@link Map} used as the storage.
    *
    * @return The {@link Map#keySet()} of the {@link Map} used as the storage.
-   * @see #findIdsSync(Function)
+   * @see #findIdsSync(IntFunction)
    * @since 1.0.0
    */
   @Override
-  public @NotNull Collection<String> findIdsSync() {
+  public @NotNull Collection<@NotNull String> findIdsSync() {
     return this.cache.keySet();
   }
 
@@ -136,7 +136,7 @@ public final class MapModelRepository<ModelType extends Model> implements ModelR
    * @since 1.0.0
    */
   @Override
-  public <C extends Collection<String>> @Nullable C findIdsSync(final @NotNull Function<Integer, C> factory) {
+  public <C extends Collection<@NotNull String>> @Nullable C findIdsSync(final @NotNull IntFunction<@NotNull C> factory) {
     final var keys = this.cache.keySet();
     if (keys.isEmpty()) {
       return null;
@@ -156,8 +156,11 @@ public final class MapModelRepository<ModelType extends Model> implements ModelR
    * @since 1.0.0
    */
   @Override
-  public <C extends Collection<ModelType>> @Nullable C findAllSync(final @NotNull Consumer<ModelType> postLoadAction, final @NotNull Function<Integer, C> factory) {
+  public <C extends Collection<@NotNull ModelType>> @Nullable C findAllSync(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
     final var values = this.cache.values();
+    if (values.isEmpty()) {
+      return null;
+    }
     final var collection = factory.apply(values.size());
     for (final var value : values) {
       postLoadAction.accept(value);
@@ -167,7 +170,7 @@ public final class MapModelRepository<ModelType extends Model> implements ModelR
   }
 
   @Override
-  public void forEachSync(final @NotNull Consumer<ModelType> action) {
+  public void forEachSync(final @NotNull Consumer<@NotNull ModelType> action) {
     this.cache.values().forEach(action);
   }
 
@@ -214,7 +217,7 @@ public final class MapModelRepository<ModelType extends Model> implements ModelR
   }
 
   @Override
-  public void deleteAll() {
+  public void deleteAllSync() {
     this.cache.clear();
   }
 }

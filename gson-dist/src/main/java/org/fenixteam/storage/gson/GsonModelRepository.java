@@ -37,6 +37,8 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntFunction;
+
 import org.fenixteam.storage.codec.ModelDeserializer;
 import org.fenixteam.storage.codec.ModelSerializer;
 import org.fenixteam.storage.model.Model;
@@ -74,12 +76,12 @@ public class GsonModelRepository<ModelType extends Model> extends AsyncModelRepo
   }
 
   @Override
-  public @Nullable Collection<String> findIdsSync() {
+  public @Nullable Collection<@NotNull String> findIdsSync() {
     return this.findIdsSync(ArrayList::new);
   }
 
   @Override
-  public <C extends Collection<String>> @Nullable C findIdsSync(final @NotNull Function<Integer, C> factory) {
+  public <C extends Collection<@NotNull String>> @Nullable C findIdsSync(final @NotNull IntFunction<@NotNull C> factory) {
     try (final var directoryStream = Files.newDirectoryStream(this.folderPath)) {
       final var foundIds = factory.apply(1);
       directoryStream.forEach(path -> foundIds.add(this.extractId(path)));
@@ -90,7 +92,7 @@ public class GsonModelRepository<ModelType extends Model> extends AsyncModelRepo
   }
 
   @Override
-  public <C extends Collection<ModelType>> @Nullable C findAllSync(final @NotNull Consumer<ModelType> postLoadAction, final @NotNull Function<Integer, C> factory) {
+  public <C extends Collection<@NotNull ModelType>> @Nullable C findAllSync(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
     final var foundModels = factory.apply(1);
     this.forEachSync(model -> {
       postLoadAction.accept(model);
@@ -100,7 +102,7 @@ public class GsonModelRepository<ModelType extends Model> extends AsyncModelRepo
   }
 
   @Override
-  public void forEachSync(final @NotNull Consumer<ModelType> action) {
+  public void forEachSync(final @NotNull Consumer<@NotNull ModelType> action) {
     try (final var directoryStream = Files.newDirectoryStream(this.folderPath)) {
       directoryStream.forEach(path -> {
         final var model = this.internalFind(path);
@@ -158,7 +160,7 @@ public class GsonModelRepository<ModelType extends Model> extends AsyncModelRepo
   }
 
   @Override
-  public void deleteAll() {
+  public void deleteAllSync() {
     try (final var walk = Files.walk(this.folderPath, 1)) {
       walk.filter(Files::isRegularFile)
         .forEach(path -> {

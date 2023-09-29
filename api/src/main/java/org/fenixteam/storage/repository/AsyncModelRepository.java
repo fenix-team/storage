@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import org.fenixteam.storage.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -89,51 +89,64 @@ public abstract class AsyncModelRepository<ModelType extends Model> implements M
    * @see #findIdsSync()
    * @since 1.0.0
    */
-  public @NotNull CompletableFuture<@Nullable Collection<String>> findIds() {
+  public @NotNull CompletableFuture<@Nullable Collection<@NotNull String>> findIds() {
     return CompletableFuture.supplyAsync(this::findIdsSync, this.executor);
   }
 
   /**
-   * This method executes and wraps the {@link #findIdsSync(Function)} method in a {@link CompletableFuture} with
+   * This method executes and wraps the {@link #findIdsSync(IntFunction)} method in a {@link CompletableFuture} with
    * the {@link Executor} specified in the constructor.
    *
    * @param factory The factory to create the {@link Collection} to return.
    * @param <C>     The type of the {@link Collection} to return.
    * @return A {@link CompletableFuture} that will complete with a {@link Collection} containing all the ids of the repository.
-   * @see #findIdsSync(Function)
+   * @see #findIdsSync(IntFunction)
    * @since 1.0.0
    */
-  public <C extends Collection<String>> @NotNull CompletableFuture<@Nullable C> findIds(final @NotNull Function<Integer, C> factory) {
+  public <C extends Collection<@NotNull String>> @NotNull CompletableFuture<@Nullable C> findIds(final @NotNull IntFunction<@NotNull C> factory) {
     return CompletableFuture.supplyAsync(() -> this.findIdsSync(factory), this.executor);
   }
 
   /**
-   * This method executes and wraps the {@link #findAllSync(Function)} method in a {@link CompletableFuture} with
+   * This method executes and wraps the {@link #findAllSync(IntFunction)} method in a {@link CompletableFuture} with
    * the {@link Executor} specified in the constructor.
    *
    * @param factory The factory to create the {@link Collection} to return.
    * @param <C>     The type of the {@link Collection} to return.
    * @return A {@link CompletableFuture} that will complete with a {@link Collection} containing all the {@link ModelType}s in the repository.
-   * @see #findAllSync(Function)
+   * @see #findAllSync(IntFunction)
    * @since 1.0.0
    */
-  public <C extends Collection<ModelType>> @NotNull CompletableFuture<@Nullable C> findAll(final @NotNull Function<Integer, C> factory) {
+  public <C extends Collection<@NotNull ModelType>> @NotNull CompletableFuture<@Nullable C> findAll(final @NotNull IntFunction<@NotNull C> factory) {
     return CompletableFuture.supplyAsync(() -> this.findAllSync(factory), this.executor);
   }
 
   /**
-   * This method executes and wraps the {@link #findAllSync(Consumer, Function)} method in a {@link CompletableFuture} with
+   * This method executes and wraps the {@link #findAllSync(Consumer, IntFunction)} method in a {@link CompletableFuture} with
    * the {@link Executor} specified in the constructor.
    *
    * @param postLoadAction The action to execute for each model after it's loaded.
    * @param factory        The factory to create the {@link Collection} to return.
    * @param <C>            The type of the {@link Collection} to return.
    * @return A {@link CompletableFuture} that will complete with a {@link Collection} containing all the {@link ModelType}s in the repository.
-   * @see #findAllSync(Consumer, Function)
+   * @see #findAllSync(Consumer, IntFunction)
    * @since 1.0.0
    */
-  public <C extends Collection<ModelType>> @NotNull CompletableFuture<@Nullable C> findAll(final @NotNull Consumer<ModelType> postLoadAction, final @NotNull Function<Integer, C> factory) {
+  public <C extends Collection<@NotNull ModelType>> @NotNull CompletableFuture<@Nullable C> findAll(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
     return CompletableFuture.supplyAsync(() -> this.findAllSync(postLoadAction, factory), this.executor);
+  }
+
+  /**
+   * This method executes and wraps the {@link #forEachSync(Consumer)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param action The action to execute for each {@link ModelType}.
+   * @return A {@link CompletableFuture} that will complete when the operation is finished.
+   * @see #forEachSync(Consumer)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@NotNull Void> forEach(final @NotNull Consumer<@NotNull ModelType> action) {
+    return CompletableFuture.runAsync(() -> this.forEachSync(action), this.executor);
   }
 
   /**
@@ -173,5 +186,30 @@ public abstract class AsyncModelRepository<ModelType extends Model> implements M
    */
   public @NotNull CompletableFuture<@NotNull Boolean> delete(final @NotNull String id) {
     return CompletableFuture.supplyAsync(() -> this.deleteSync(id), this.executor);
+  }
+
+  /**
+   * This method executes and wraps the {@link #deleteAndRetrieveSync(String)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param id The id of the {@link ModelType} to delete.
+   * @return A {@link CompletableFuture} that will complete with the deleted {@link ModelType}, or {@code null} if it doesn't exist.
+   * @see #deleteAndRetrieveSync(String)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@Nullable ModelType> deleteAndRetrieve(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.deleteAndRetrieveSync(id), this.executor);
+  }
+
+  /**
+   * This method executes and wraps the {@link #deleteAllSync()} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @return A {@link CompletableFuture} that will complete when the operation is finished.
+   * @see #deleteAllSync()
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@NotNull Void> deleteAll() {
+    return CompletableFuture.runAsync(this::deleteAllSync, this.executor);
   }
 }

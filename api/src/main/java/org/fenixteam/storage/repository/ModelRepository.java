@@ -25,7 +25,7 @@ package org.fenixteam.storage.repository;
 
 import java.util.Collection;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.IntFunction;
 import org.fenixteam.storage.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -40,25 +40,24 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface ModelRepository<ModelType extends Model> {
   /**
-   * Returns the model with the specified id, or null if it doesn't exist.
+   * Returns the {@link ModelType} with the specified id, or {@code null} if it doesn't exist.
    *
    * @param id The id of the {@link ModelType}.
-   * @return The {@link ModelType} with the specified id, or null if it doesn't exist.
+   * @return The {@link ModelType} with the specified id, or {@code null} if it doesn't exist.
    * @since 1.0.0
    */
   @Nullable ModelType findSync(final @NotNull String id);
 
   /**
-   * Returns a {@link Collection} of all the ids of the {@link ModelType}s in the repository. This method is equivalent
-   * to calling {@link #findIdsSync(Function)} with a {@link Collection} factory that creates a
-   * {@link Collection} of the same type as the one passed as parameter except that this method
-   * doesn't make any assumptions about the type of the {@link Collection} to return.
+   * Returns a {@link Collection} of all the ids of the {@link ModelType}s in the repository. This method
+   * doesn't care about the type of the {@link Collection} to return. If you want to specify the type
+   * of the {@link Collection} to return, use {@link #findIdsSync(IntFunction)}.
    *
-   * @return A {@link Collection} containing all the ids of the {@link ModelType}s in the repository.
-   * @see #findIdsSync(Function)
+   * @return A {@link Collection} containing all the ids of the {@link ModelType}s in the repository or {@code null} if the repository is empty.
+   * @see #findIdsSync(IntFunction)
    * @since 1.0.0
    */
-  @Nullable Collection<String> findIdsSync();
+  @Nullable Collection<@NotNull String> findIdsSync();
 
   /**
    * Returns a {@link Collection} of all the ids of the {@link ModelType}s in the repository. This method
@@ -69,85 +68,88 @@ public interface ModelRepository<ModelType extends Model> {
    *
    * @param factory The factory to create the {@link Collection} to return.
    * @param <C>     The type of the {@link Collection} to return.
-   * @return A {@link Collection} containing all the ids of the {@link ModelType}s in the repository.
+   * @return A {@link Collection} containing all the ids of the {@link ModelType}s in the repository or {@code null} if the repository is empty.
    * @since 1.0.0
    */
-  <C extends Collection<String>> @Nullable C findIdsSync(final @NotNull Function<Integer, C> factory);
+  <C extends Collection<@NotNull String>> @Nullable C findIdsSync(final @NotNull IntFunction<@NotNull C> factory);
 
   /**
-   * Finds all the models in the repository and returns them in the specified {@link Collection}.
+   * Finds all the {@link ModelType} in the repository and returns them in the specified {@link Collection}.
    *
    * @param factory The factory to create the {@link Collection} to return.
    * @param <C>     The type of the {@link Collection} to return.
-   * @return A {@link Collection} containing all the models in the repository.
+   * @return A {@link Collection} containing all the {@link ModelType}s in the repository or {@code null} if the repository is empty.
    * @since 1.0.0
    */
-  default <C extends Collection<ModelType>> @Nullable C findAllSync(final @NotNull Function<Integer, C> factory) {
+  default <C extends Collection<@NotNull ModelType>> @Nullable C findAllSync(final @NotNull IntFunction<@NotNull C> factory) {
     return this.findAllSync(modelType -> {}, factory);
   }
 
   /**
    * Finds all the models in the repository and returns them in the specified {@link Collection}, it also executes
-   * the specified action for each model after it's loaded so you mustn't iterate over the returned {@link Collection}.
+   * the specified action for each model after it's loaded, so you mustn't iterate over the returned {@link Collection}.
    *
-   * @param postLoadAction The action to execute for each model after it's loaded.
+   * @param postLoadAction The action to execute for each {@link ModelType} after it's loaded.
    * @param factory        The factory to create the {@link Collection} to return.
    * @param <C>            The type of the {@link Collection} to return.
-   * @return A {@link Collection} containing all the models in the repository.
+   * @return A {@link Collection} containing all the {@link ModelType} in the repository or {@code null} if the repository is empty.
    * @since 1.0.0
    */
-  <C extends Collection<ModelType>> @Nullable C findAllSync(final @NotNull Consumer<ModelType> postLoadAction, final @NotNull Function<Integer, C> factory);
+  <C extends Collection<@NotNull ModelType>> @Nullable C findAllSync(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory);
 
   /**
    * Iterates over all the {@link ModelType}s in the repository and executes the specified action for each one.
    *
-   * @param action The action to execute for each model.
+   * @param action The action to execute for each {@link ModelType}.
    * @since 1.0.0
    */
-  void forEachSync(final @NotNull Consumer<ModelType> action);
+  void forEachSync(final @NotNull Consumer<@NotNull ModelType> action);
 
   /**
-   * Returns true if the model with the specified id exists, false otherwise.
+   * Checks if the {@link ModelType} with the specified id exists in the repository.
    *
-   * @param id The id of the model.
-   * @return True if the model with the specified id exists, false otherwise.
+   * @param id The id of the {@link ModelType}.
+   * @return {@code true} if the {@link ModelType} with the specified id exists, {@code false} otherwise.
    * @since 1.0.0
    */
   boolean existsSync(final @NotNull String id);
 
   /**
-   * Saves the specified {@link Model} in the repository.
+   * Saves the specified {@link ModelType} in the repository.
    *
-   * @param model The {@link Model} to save.
-   * @return The saved {@link Model}.
+   * @param model The {@link ModelType} to save.
+   * @return The saved {@link ModelType}.
    * @since 1.0.0
    */
   @Contract("_ -> param1")
   @NotNull ModelType saveSync(final @NotNull ModelType model);
 
   /**
-   * Deletes the specified {@link Model} from the repository and returns true if it was deleted
-   * successfully, false otherwise.
+   * Deletes the specified {@link ModelType} from the repository. Note that this method doesn't return
+   * the deleted {@link ModelType}, if you want to retrieve the deleted {@link ModelType} use
+   * {@link #deleteAndRetrieveSync(String)}. Also, this method can delete permanently the {@link ModelType}
+   * from the repository, so it's important to note that this method can be dangerous if you don't
+   * know what you're doing.
    *
-   * @param id The id of the {@link Model} to delete.
-   * @return True if the {@link Model} was deleted successfully, false otherwise.
+   * @param id The id of the {@link ModelType} to delete.
+   * @return {@code true} if the {@link ModelType} was deleted successfully, {@code false} otherwise.
    * @since 1.0.0
    */
   boolean deleteSync(final @NotNull String id);
 
   /**
-   * Deletes the specified {@link Model} from the repository and returns it.
+   * Deletes the specified {@link ModelType} from the repository and returns it.
    *
-   * @param id The id of the {@link Model} to delete.
-   * @return The deleted {@link Model}, or null if it doesn't exist.
+   * @param id The id of the {@link ModelType} to delete.
+   * @return The deleted {@link ModelType}, or {@code null} if it doesn't exist.
    * @since 1.0.0
    */
   @Nullable ModelType deleteAndRetrieveSync(final @NotNull String id);
 
   /**
-   * Deletes all the {@link Model}s from the repository.
+   * Deletes all the {@link ModelType}s from the repository.
    *
    * @since 1.0.0
    */
-  void deleteAll();
+  void deleteAllSync();
 }

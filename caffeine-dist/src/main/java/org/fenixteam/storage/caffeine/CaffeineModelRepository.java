@@ -24,19 +24,36 @@
 package org.fenixteam.storage.caffeine;
 
 import com.github.benmanes.caffeine.cache.Cache;
+
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntFunction;
+
 import org.fenixteam.storage.model.Model;
 import org.fenixteam.storage.repository.ModelRepository;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * This class is the implementation of the {@link ModelRepository} interface, it uses the
+ * {@link Cache} class from the Caffeine library to store the models. So, you're able to add
+ * listeners, set the maximum size of the cache, set the expiration time of the cache, etc.
+ *
+ * @param <ModelType> The type of the {@link Model} that this repository will store.
+ * @since 1.0.0
+ */
 @SuppressWarnings("unused")
 public class CaffeineModelRepository<ModelType extends Model> implements ModelRepository<ModelType> {
   private final Cache<String, ModelType> cache;
 
+  /**
+   * Creates a new {@link CaffeineModelRepository} with the given {@link Cache}.
+   *
+   * @param cache The {@link Cache} that will be used to store the {@link ModelType}s.
+   * @since 1.0.0
+   */
   protected CaffeineModelRepository(final @NotNull Cache<String, ModelType> cache) {
     this.cache = cache;
   }
@@ -52,27 +69,21 @@ public class CaffeineModelRepository<ModelType extends Model> implements ModelRe
   }
 
   @Override
-  public <C extends Collection<ModelType>> @Nullable C findSync(
-    final @NotNull String field,
-    final @NotNull String value,
-    final @NotNull Function<Integer, C> factory
-  ) {
-    throw new UnsupportedOperationException("Not implemented yet");
+  public @Nullable Collection<@NotNull String> findIdsSync() {
+    return this.cache.asMap().keySet();
   }
 
   @Override
-  public @Nullable Collection<String> findIdsSync() {
-    return this.cache.asMap()
-             .keySet();
+  public <C extends Collection<@NotNull String>> @Nullable C findIdsSync(final @NotNull IntFunction<@NotNull C> factory) {
+    final var keys = this.cache.asMap().keySet();
+    final var foundIds = factory.apply(keys.size());
+    foundIds.addAll(keys);
+    return foundIds;
   }
 
   @Override
-  public <C extends Collection<ModelType>> @Nullable C findAllSync(
-    final @NotNull Consumer<ModelType> postLoadAction,
-    final @NotNull Function<Integer, C> factory
-  ) {
-    final var values = this.cache.asMap()
-                         .values();
+  public <C extends Collection<@NotNull ModelType>> @Nullable C findAllSync(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
+    final var values = this.cache.asMap().values();
     final var foundModels = factory.apply(values.size());
     for (final var value : values) {
       postLoadAction.accept(value);
@@ -82,9 +93,13 @@ public class CaffeineModelRepository<ModelType extends Model> implements ModelRe
   }
 
   @Override
+  public void forEachSync(final @NotNull Consumer<@NotNull ModelType> action) {
+    this.cache.asMap().values().forEach(action);
+  }
+
+  @Override
   public boolean existsSync(final @NotNull String id) {
-    return this.cache.asMap()
-             .containsKey(id);
+    return this.cache.asMap().containsKey(id);
   }
 
   @Override
@@ -97,5 +112,15 @@ public class CaffeineModelRepository<ModelType extends Model> implements ModelRe
   public boolean deleteSync(final @NotNull String id) {
     this.cache.invalidate(id);
     return true;
+  }
+
+  @Override
+  public @Nullable ModelType deleteAndRetrieveSync(final @NotNull String id) {
+    return this.cache.asMap().remove(id);
+  }
+
+  @Override
+  public void deleteAllSync() {
+    this.cache.invalidateAll();
   }
 }

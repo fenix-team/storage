@@ -24,9 +24,10 @@
 package org.fenixteam.storage.repository;
 
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.IntFunction;
 import org.fenixteam.storage.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -92,38 +93,38 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
    * @since 1.0.0
    */
   @Override
-  public @Nullable Collection<String> findIdsSync() {
+  public @Nullable Collection<@NotNull String> findIdsSync() {
     return this.mainModelRepository.findIdsSync();
   }
 
   /**
-   * This method uses the {@link ModelRepository#findIdsSync(Function)} of the {@link #mainModelRepository} to find the
+   * This method uses the {@link ModelRepository#findIdsSync(IntFunction)} of the {@link #mainModelRepository} to find the
    * ids of the repository.
    *
    * @param factory The factory to create the {@link Collection} to return.
    * @param <C>     The type of the {@link Collection} to return.
    * @return A {@link Collection} containing all the ids of the repository.
-   * @see ModelRepository#findIdsSync(Function)
+   * @see ModelRepository#findIdsSync(IntFunction)
    * @since 1.0.0
    */
   @Override
-  public <C extends Collection<String>> @Nullable C findIdsSync(final @NotNull Function<Integer, C> factory) {
+  public <C extends Collection<@NotNull String>> @Nullable C findIdsSync(final @NotNull IntFunction<@NotNull C> factory) {
     return this.mainModelRepository.findIdsSync(factory);
   }
 
   /**
-   * This method uses the {@link ModelRepository#findAllSync(Function)} of the {@link #mainModelRepository} to find the
+   * This method uses the {@link ModelRepository#findAllSync(IntFunction)} of the {@link #mainModelRepository} to find the
    * {@link ModelType}s in the repository.
    *
    * @param postLoadAction The action to execute for each model after it's loaded.
    * @param factory        The factory to create the {@link Collection} to return.
    * @param <C>            The type of the {@link Collection} to return.
    * @return A {@link Collection} containing all the {@link ModelType}s in the repository.
-   * @see ModelRepository#findAllSync(Function)
+   * @see ModelRepository#findAllSync(IntFunction)
    * @since 1.0.0
    */
   @Override
-  public <C extends Collection<ModelType>> @Nullable C findAllSync(final @NotNull Consumer<ModelType> postLoadAction, final @NotNull Function<Integer, C> factory) {
+  public <C extends Collection<@NotNull ModelType>> @Nullable C findAllSync(final @NotNull Consumer<ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
     return this.mainModelRepository.findAllSync(postLoadAction, factory);
   }
 
@@ -136,7 +137,7 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
    * @since 1.0.0
    */
   @Override
-  public void forEachSync(final @NotNull Consumer<ModelType> action) {
+  public void forEachSync(final @NotNull Consumer<@NotNull ModelType> action) {
     this.mainModelRepository.forEachSync(action);
   }
 
@@ -197,15 +198,15 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
   }
 
   /**
-   * This method uses the {@link ModelRepository#deleteAll()} of the {@link #mainModelRepository} to delete all the
+   * This method uses the {@link ModelRepository#deleteAllSync()} of the {@link #mainModelRepository} to delete all the
    * {@link ModelType}s in the {@link #mainModelRepository}.
    *
-   * @see ModelRepository#deleteAll()
+   * @see ModelRepository#deleteAllSync()
    * @since 1.0.0
    */
   @Override
-  public void deleteAll() {
-    this.mainModelRepository.deleteAll();
+  public void deleteAllSync() {
+    this.mainModelRepository.deleteAllSync();
   }
 
   /**
@@ -239,13 +240,26 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
    * @see ModelRepository#saveSync(Model)
    * @since 1.0.0
    */
-  public @Nullable ModelType findAndSaveToFallback(final @NotNull String id) {
+  public @Nullable ModelType findAndSaveToFallbackSync(final @NotNull String id) {
     final var model = this.findSync(id);
     if (model == null) {
       return null;
     }
     this.fallbackModelRepository.saveSync(model);
     return model;
+  }
+
+  /**
+   * This method executes and wraps the {@link #findAndSaveToFallbackSync(String)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param id The id of the {@link ModelType}.
+   * @return A {@link CompletableFuture} that will complete with the {@link ModelType} with the specified id, or {@code null} if it doesn't exist.
+   * @see #findAndSaveToFallbackSync(String)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@Nullable ModelType> findAndSaveToFallback(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.findAndSaveToFallbackSync(id), this.executor);
   }
 
   /**
@@ -257,8 +271,21 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
    * @see ModelRepository#findSync(String)
    * @since 1.0.0
    */
-  public @Nullable ModelType findInFallback(final @NotNull String id) {
+  public @Nullable ModelType findInFallbackSync(final @NotNull String id) {
     return this.fallbackModelRepository.findSync(id);
+  }
+
+  /**
+   * This method executes and wraps the {@link #findInFallbackSync(String)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param id The id of the {@link ModelType}.
+   * @return A {@link CompletableFuture} that will complete with the {@link ModelType} with the specified id, or {@code null} if it doesn't exist.
+   * @see #findInFallbackSync(String)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@Nullable ModelType> findInFallback(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.findInFallbackSync(id), this.executor);
   }
 
   /**
@@ -272,11 +299,24 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
    * @since 1.0.0
    */
   public @Nullable ModelType findInBothSync(final @NotNull String id) {
-    final var model = this.findInFallback(id);
+    final var model = this.findInFallbackSync(id);
     if (model != null) {
       return model;
     }
     return this.findSync(id);
+  }
+
+  /**
+   * This method executes and wraps the {@link #findInBothSync(String)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param id The id of the {@link ModelType}.
+   * @return A {@link CompletableFuture} that will complete with the {@link ModelType} with the specified id, or {@code null} if it doesn't exist.
+   * @see #findInBothSync(String)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@Nullable ModelType> findInBoth(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.findInBothSync(id), this.executor);
   }
 
   /**
@@ -292,7 +332,7 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
    * @since 1.0.0
    */
   public @Nullable ModelType findInBothAndSaveToFallbackSync(final @NotNull String id) {
-    final var cachedModel = this.findInFallback(id);
+    final var cachedModel = this.findInFallbackSync(id);
     if (cachedModel != null) {
       return cachedModel;
     }
@@ -305,6 +345,19 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
   }
 
   /**
+   * This method executes and wraps the {@link #findInBothAndSaveToFallbackSync(String)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param id The id of the {@link ModelType}.
+   * @return A {@link CompletableFuture} that will complete with the {@link ModelType} with the specified id, or {@code null} if it doesn't exist.
+   * @see #findInBothAndSaveToFallbackSync(String)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@Nullable ModelType> findInBothAndSaveToFallback(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.findInBothAndSaveToFallbackSync(id), this.executor);
+  }
+
+  /**
    * This method uses the {@link ModelRepository#findIdsSync()} of the {@link #fallbackModelRepository} to find the
    * ids of the repository.
    *
@@ -312,37 +365,78 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
    * @see ModelRepository#findIdsSync()
    * @since 1.0.0
    */
-  public @Nullable Collection<String> findAllIdsInFallbackSync() {
+  public @Nullable Collection<@NotNull String> findAllIdsInFallbackSync() {
     return this.fallbackModelRepository.findIdsSync();
   }
 
   /**
-   * This method uses the {@link ModelRepository#findAllSync(Function)} of the {@link #fallbackModelRepository} to find the
+   * This method executes and wraps the {@link #findAllIdsInFallbackSync()} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @return A {@link CompletableFuture} that will complete with a {@link Collection} containing all the ids of the repository.
+   * @see #findAllIdsInFallbackSync()
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@Nullable Collection<@NotNull String>> findAllIdsInFallback() {
+    return CompletableFuture.supplyAsync(this::findAllIdsInFallbackSync, this.executor);
+  }
+
+  /**
+   * This method uses the {@link ModelRepository#findAllSync(IntFunction)} of the {@link #fallbackModelRepository} to find the
    * {@link ModelType}s in the repository.
    *
    * @param factory The factory to create the {@link Collection} to return.
    * @param <C>     The type of the {@link Collection} to return.
    * @return A {@link Collection} containing all the {@link ModelType}s in the repository.
-   * @see ModelRepository#findAllSync(Function)
+   * @see ModelRepository#findAllSync(IntFunction)
    * @since 1.0.0
    */
-  public <C extends Collection<ModelType>> @Nullable C findAllInFallbackSync(final @NotNull Function<Integer, C> factory) {
+  public <C extends Collection<@NotNull ModelType>> @Nullable C findAllInFallbackSync(final @NotNull IntFunction<@NotNull C> factory) {
     return this.fallbackModelRepository.findAllSync(factory);
   }
 
   /**
-   * This method uses the {@link ModelRepository#findAllSync(Consumer, Function)} of the {@link #fallbackModelRepository} to find the
+   * This method executes and wraps the {@link #findAllInFallbackSync(IntFunction)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param factory The factory to create the {@link Collection} to return.
+   * @param <C>     The type of the {@link Collection} to return.
+   * @return A {@link CompletableFuture} that will complete with a {@link Collection} containing all the {@link ModelType}s in the repository.
+   * @see #findAllInFallbackSync(IntFunction)
+   * @since 1.0.0
+   */
+  public <C extends Collection<@NotNull ModelType>> @NotNull CompletableFuture<@Nullable C> findAllInFallback(final @NotNull IntFunction<@NotNull C> factory) {
+    return CompletableFuture.supplyAsync(() -> this.findAllInFallbackSync(factory), this.executor);
+  }
+
+  /**
+   * This method uses the {@link ModelRepository#findAllSync(Consumer, IntFunction)} of the {@link #fallbackModelRepository} to find the
    * {@link ModelType}s in the repository.
    *
    * @param postLoadAction The action to execute for each model after it's loaded.
    * @param factory        The factory to create the {@link Collection} to return.
    * @param <C>            The type of the {@link Collection} to return.
    * @return A {@link Collection} containing all the {@link ModelType}s in the repository.
-   * @see ModelRepository#findAllSync(Consumer, Function)
+   * @see ModelRepository#findAllSync(Consumer, IntFunction)
    * @since 1.0.0
    */
-  public <C extends Collection<ModelType>> @Nullable C findAllInFallbackSync(final @NotNull Consumer<ModelType> postLoadAction, final @NotNull Function<Integer, C> factory) {
+  public <C extends Collection<@NotNull ModelType>> @Nullable C findAllInFallbackSync(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
     return this.fallbackModelRepository.findAllSync(postLoadAction, factory);
+  }
+
+  /**
+   * This method executes and wraps the {@link #findAllInFallbackSync(Consumer, IntFunction)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param postLoadAction The action to execute for each model after it's loaded.
+   * @param factory        The factory to create the {@link Collection} to return.
+   * @param <C>            The type of the {@link Collection} to return.
+   * @return A {@link CompletableFuture} that will complete with a {@link Collection} containing all the {@link ModelType}s in the repository.
+   * @see #findAllInFallbackSync(Consumer, IntFunction)
+   * @since 1.0.0
+   */
+  public <C extends Collection<@NotNull ModelType>> @NotNull CompletableFuture<@Nullable C> findAllInFallback(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
+    return CompletableFuture.supplyAsync(() -> this.findAllInFallbackSync(postLoadAction, factory), this.executor);
   }
 
   /**
@@ -353,22 +447,34 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
    * @see ModelRepository#forEachSync(Consumer)
    * @since 1.0.0
    */
-  public void forEachInFallbackSync(final @NotNull Consumer<ModelType> action) {
+  public void forEachInFallbackSync(final @NotNull Consumer<@NotNull ModelType> action) {
     this.fallbackModelRepository.forEachSync(action);
   }
 
   /**
-   * This method uses the {@link ModelRepository#findAllSync(Consumer, Function)} of the {@link #mainModelRepository} to find the
+   * This method executes and wraps the {@link #forEachInFallbackSync(Consumer)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param action The action to execute for each {@link ModelType}.
+   * @see #forEachInFallbackSync(Consumer)
+   * @since 1.0.0
+   */
+  public void forEachInFallback(final @NotNull Consumer<@NotNull ModelType> action) {
+    CompletableFuture.runAsync(() -> this.forEachInFallbackSync(action), this.executor);
+  }
+
+  /**
+   * This method uses the {@link ModelRepository#findAllSync(Consumer, IntFunction)} of the {@link #mainModelRepository} to find the
    * {@link ModelType}s in the repository, and if they exist, it saves them to the {@link #fallbackModelRepository}.
    *
    * @param postLoadAction The action to execute for each model after it's loaded.
    * @param factory        The factory to create the {@link Collection} to return.
    * @param <C>            The type of the {@link Collection} to return.
    * @return A {@link Collection} containing all the {@link ModelType}s in the repository.
-   * @see ModelRepository#findAllSync(Consumer, Function)
+   * @see ModelRepository#findAllSync(Consumer, IntFunction)
    * @since 1.0.0
    */
-  public <C extends Collection<ModelType>> @Nullable C loadAllSync(final @NotNull Consumer<ModelType> postLoadAction, final @NotNull Function<Integer, C> factory) {
+  public <C extends Collection<@NotNull ModelType>> @Nullable C loadAllSync(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
     final var models = this.mainModelRepository.findAllSync(postLoadAction, factory);
     if (models == null) {
       return null;
@@ -377,6 +483,21 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
       this.fallbackModelRepository.saveSync(model);
     }
     return models;
+  }
+
+  /**
+   * This method executes and wraps the {@link #loadAllSync(Consumer, IntFunction)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param postLoadAction The action to execute for each model after it's loaded.
+   * @param factory        The factory to create the {@link Collection} to return.
+   * @param <C>            The type of the {@link Collection} to return.
+   * @return A {@link CompletableFuture} that will complete with a {@link Collection} containing all the {@link ModelType}s in the repository.
+   * @see #loadAllSync(Consumer, IntFunction)
+   * @since 1.0.0
+   */
+  public <C extends Collection<@NotNull ModelType>> @NotNull CompletableFuture<@Nullable C> loadAll(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
+    return CompletableFuture.supplyAsync(() -> this.loadAllSync(postLoadAction, factory), this.executor);
   }
 
   /**
@@ -399,6 +520,19 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
   }
 
   /**
+   * This method executes and wraps the {@link #uploadSync(String)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param id The id of the {@link ModelType}.
+   * @return A {@link CompletableFuture} that will complete with the {@link ModelType} with the specified id, or {@code null} if it doesn't exist.
+   * @see #uploadSync(String)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@Nullable ModelType> upload(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.uploadSync(id), this.executor);
+  }
+
+  /**
    * This method uses the {@link ModelRepository#forEachSync(Consumer)} of the {@link #fallbackModelRepository} to iterate
    * over the {@link ModelType}s in the {@link #fallbackModelRepository}, and if they exist, it saves them to the
    * {@link #mainModelRepository}. After that, it deletes all the {@link ModelType}s from the {@link #fallbackModelRepository}.
@@ -406,15 +540,27 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
    * @param preUploadAction The action to execute for each model before it's uploaded.
    * @see ModelRepository#forEachSync(Consumer)
    * @see ModelRepository#saveSync(Model)
-   * @see ModelRepository#deleteAll()
+   * @see ModelRepository#deleteAllSync()
    * @since 1.0.0
    */
-  public void uploadAllSync(final @NotNull Consumer<ModelType> preUploadAction) {
+  public void uploadAllSync(final @NotNull Consumer<@NotNull ModelType> preUploadAction) {
     this.fallbackModelRepository.forEachSync(modelType -> {
       preUploadAction.accept(modelType);
       this.mainModelRepository.saveSync(modelType);
     });
-    this.fallbackModelRepository.deleteAll();
+    this.fallbackModelRepository.deleteAllSync();
+  }
+
+  /**
+   * This method executes and wraps the {@link #uploadAllSync(Consumer)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param preUploadAction The action to execute for each model before it's uploaded.
+   * @see #uploadAllSync(Consumer)
+   * @since 1.0.0
+   */
+  public void uploadAll(final @NotNull Consumer<@NotNull ModelType> preUploadAction) {
+    CompletableFuture.runAsync(() -> this.uploadAllSync(preUploadAction), this.executor);
   }
 
   /**
@@ -428,6 +574,19 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
    */
   public boolean existsInFallbackSync(final @NotNull String id) {
     return this.fallbackModelRepository.existsSync(id);
+  }
+
+  /**
+   * This method executes and wraps the {@link #existsInFallbackSync(String)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param id The id of the {@link ModelType}.
+   * @return A {@link CompletableFuture} that will complete with {@code true} if the {@link ModelType} with the specified id exists in the {@link #fallbackModelRepository}, {@code false} otherwise.
+   * @see #existsInFallbackSync(String)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@NotNull Boolean> existsInFallback(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.existsInFallbackSync(id), this.executor);
   }
 
   /**
@@ -445,6 +604,19 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
   }
 
   /**
+   * This method executes and wraps the {@link #existsInAnySync(String)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param id The id of the {@link ModelType}.
+   * @return A {@link CompletableFuture} that will complete with {@code true} if the {@link ModelType} with the specified id exists in the {@link #fallbackModelRepository} or in the {@link #mainModelRepository}, {@code false} otherwise.
+   * @see #existsInAnySync(String)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@NotNull Boolean> existsInAny(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.existsInAnySync(id), this.executor);
+  }
+
+  /**
    * This method uses the {@link ModelRepository#existsSync(String)} of the {@link #fallbackModelRepository} and the
    * {@link ModelRepository#existsSync(String)} of the {@link #mainModelRepository} to check if the {@link ModelType}
    * with the specified id exists in both repositories.
@@ -456,6 +628,19 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
    */
   public boolean existsInBothSync(final @NotNull String id) {
     return this.existsInFallbackSync(id) && this.mainModelRepository.existsSync(id);
+  }
+
+  /**
+   * This method executes and wraps the {@link #existsInBothSync(String)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param id The id of the {@link ModelType}.
+   * @return A {@link CompletableFuture} that will complete with {@code true} if the {@link ModelType} with the specified id exists in the {@link #fallbackModelRepository} and in the {@link #mainModelRepository}, {@code false} otherwise.
+   * @see #existsInBothSync(String)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@NotNull Boolean> existsInBoth(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.existsInBothSync(id), this.executor);
   }
 
   /**
@@ -471,6 +656,19 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
   public @NotNull ModelType saveInFallbackSync(final @NotNull ModelType model) {
     this.fallbackModelRepository.saveSync(model);
     return model;
+  }
+
+  /**
+   * This method executes and wraps the {@link #saveInFallbackSync(Model)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param model The {@link ModelType} to save. It must have an id.
+   * @return A {@link CompletableFuture} that will complete with the saved {@link ModelType}.
+   * @see #saveInFallbackSync(Model)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@NotNull ModelType> saveInFallback(final @NotNull ModelType model) {
+    return CompletableFuture.supplyAsync(() -> this.saveInFallbackSync(model), this.executor);
   }
 
   /**
@@ -490,6 +688,19 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
   }
 
   /**
+   * This method executes and wraps the {@link #saveInBothSync(Model)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param model The {@link ModelType} to save. It must have an id.
+   * @return A {@link CompletableFuture} that will complete with the saved {@link ModelType}.
+   * @see #saveInBothSync(Model)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@NotNull ModelType> saveInBoth(final @NotNull ModelType model) {
+    return CompletableFuture.supplyAsync(() -> this.saveInBothSync(model), this.executor);
+  }
+
+  /**
    * This method uses the {@link ModelRepository#deleteSync(String)} of the {@link #fallbackModelRepository} to delete the
    * {@link ModelType} with the specified id.
    *
@@ -500,6 +711,19 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
    */
   public boolean deleteInFallbackSync(final @NotNull String id) {
     return this.fallbackModelRepository.deleteSync(id);
+  }
+
+  /**
+   * This method executes and wraps the {@link #deleteInFallbackSync(String)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param id The id of the {@link ModelType} to delete.
+   * @return A {@link CompletableFuture} that will complete with {@code true} if the {@link ModelType} was deleted successfully, {@code false} otherwise.
+   * @see #deleteInFallbackSync(String)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@NotNull Boolean> deleteInFallback(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.deleteInFallbackSync(id), this.executor);
   }
 
   /**
@@ -517,6 +741,68 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
   }
 
   /**
+   * This method executes and wraps the {@link #deleteInBothSync(String)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param id The id of the {@link ModelType} to delete.
+   * @return A {@link CompletableFuture} that will complete with {@code true} if the {@link ModelType} was deleted successfully in both repositories, {@code false} otherwise.
+   * @see #deleteInBothSync(String)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@NotNull Boolean> deleteInBoth(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.deleteInBothSync(id), this.executor);
+  }
+
+  /**
+   * This method uses the {@link ModelRepository#deleteAndRetrieveSync(String)} of the {@link #fallbackModelRepository} to delete the
+   * {@link ModelType} with the specified id.
+   *
+   * @param id The id of the {@link ModelType} to delete.
+   * @return The deleted {@link ModelType}, or {@code null} if it doesn't exist.
+   * @see ModelRepository#deleteAndRetrieveSync(String)
+   * @since 1.0.0
+   */
+  public @Nullable ModelType deleteAndRetrieveInFallbackSync(final @NotNull String id) {
+    return this.fallbackModelRepository.deleteAndRetrieveSync(id);
+  }
+
+  /**
+   * This method executes and wraps the {@link #deleteAndRetrieveInFallbackSync(String)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param id The id of the {@link ModelType} to delete.
+   * @return A {@link CompletableFuture} that will complete with the deleted {@link ModelType}, or {@code null} if it doesn't exist.
+   * @see #deleteAndRetrieveInFallbackSync(String)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@Nullable ModelType> deleteAndRetrieveInFallback(final @NotNull String id) {
+    return CompletableFuture.supplyAsync(() -> this.deleteAndRetrieveInFallbackSync(id), this.executor);
+  }
+
+  /**
+   * This method uses the {@link ModelRepository#deleteAllSync()} of the {@link #fallbackModelRepository} to delete all the
+   * {@link ModelType}s in the repository.
+   *
+   * @see ModelRepository#deleteAllSync()
+   * @since 1.0.0
+   */
+  public void deleteAllInFallbackSync() {
+    this.fallbackModelRepository.deleteAllSync();
+  }
+
+  /**
+   * This method executes and wraps the {@link #deleteAllInFallbackSync()} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @return A {@link CompletableFuture} that will complete when all the {@link ModelType}s in the repository are deleted.
+   * @see #deleteAllInFallbackSync()
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@NotNull Void> deleteAllInFallback() {
+    return CompletableFuture.runAsync(this::deleteAllInFallbackSync, this.executor);
+  }
+
+  /**
    * This method uses the {@link ModelRepository#forEachSync(Consumer)} of the {@link #fallbackModelRepository} to iterate
    * over the {@link ModelType}s in the {@link #fallbackModelRepository} and saves them to the {@link #mainModelRepository}.
    *
@@ -530,5 +816,18 @@ public class WithFallbackModelRepository<ModelType extends Model> extends AsyncM
       preSaveAction.accept(modelType);
       this.mainModelRepository.saveSync(modelType);
     });
+  }
+
+  /**
+   * This method executes and wraps the {@link #saveAllSync(Consumer)} method in a {@link CompletableFuture} with
+   * the {@link Executor} specified in the constructor.
+   *
+   * @param preSaveAction The action to execute for each {@link ModelType} before it's saved.
+   * @return A {@link CompletableFuture} that will complete when all the {@link ModelType}s in the repository are saved.
+   * @see #saveAllSync(Consumer)
+   * @since 1.0.0
+   */
+  public @NotNull CompletableFuture<@NotNull Void> saveAll(final @NotNull Consumer<ModelType> preSaveAction) {
+    return CompletableFuture.runAsync(() -> this.saveAllSync(preSaveAction), this.executor);
   }
 }

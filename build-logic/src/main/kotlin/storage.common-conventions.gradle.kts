@@ -1,9 +1,10 @@
 import com.diffplug.gradle.spotless.FormatExtension
+import java.util.*
 
 plugins {
   id("storage.base-conventions")
-  id("net.kyori.indra.crossdoc")
   id("net.kyori.indra")
+  id("net.kyori.indra.crossdoc")
   id("net.kyori.indra.checkstyle")
   id("net.kyori.indra.licenser.spotless")
 }
@@ -37,8 +38,30 @@ indraCrossdoc {
   }
 }
 
+java {
+  withJavadocJar()
+}
+
 tasks {
+  generateOfflineLinks {
+  }
+
+  jar {
+    manifest {
+      attributes(
+        "Specification-Version" to project.version,
+        "Specification-Vendor" to "fenix-team",
+        "Implementation-Build-Date" to Date()
+      )
+    }
+  }
+
+  javadoc {
+    options.encoding = Charsets.UTF_8.name()
+  }
+
   compileJava {
+    options.encoding = Charsets.UTF_8.name()
     dependsOn("spotlessApply")
     options.compilerArgs.add("-parameters")
   }
