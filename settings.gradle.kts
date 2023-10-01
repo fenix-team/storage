@@ -11,7 +11,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "storage-parent"
 
-sequenceOf("api", "api-codec", "bom", "caffeine-dist", "gson-dist", "mongo-legacy-dist", "redis-dist").forEach {
+sequenceOf("api", "codec", "bom", "caffeine-dist", "gson-dist", "mongo-legacy-dist", "redis-dist").forEach {
   include("storage-$it")
   project(":storage-$it").projectDir = file(it)
 }

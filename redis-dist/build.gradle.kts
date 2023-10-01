@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
-  api(project(":storage-api-codec"))
+  api(project(":storage-api"))
+  api(project(":storage-codec"))
   api(libs.redis)
 }

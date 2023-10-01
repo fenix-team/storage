@@ -13,7 +13,7 @@ dependencies {
   constraints {
     sequenceOf(
       "api",
-      "api-codec",
+      "codec",
       "caffeine-dist",
       "gson-dist",
       "mongo-legacy-dist",
