@@ -33,17 +33,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.IntFunction;
 
 import org.fenixteam.storage.codec.ModelDeserializer;
 import org.fenixteam.storage.codec.ModelSerializer;
 import org.fenixteam.storage.model.Model;
 import org.fenixteam.storage.repository.AsyncModelRepository;
-import org.fenixteam.storage.repository.ModelRepository;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,17 +68,17 @@ public class GsonModelRepository<ModelType extends Model> extends AsyncModelRepo
   }
 
   @Override
-  public @Nullable ModelType findSync(final @NotNull String id) {
+  public @Nullable ModelType find(final @NotNull String id) {
     return this.internalFind(this.resolveChild(id));
   }
 
   @Override
-  public @Nullable Collection<@NotNull String> findIdsSync() {
-    return this.findIdsSync(ArrayList::new);
+  public @Nullable Collection<@NotNull String> findIds() {
+    return this.findIds(ArrayList::new);
   }
 
   @Override
-  public <C extends Collection<@NotNull String>> @Nullable C findIdsSync(final @NotNull IntFunction<@NotNull C> factory) {
+  public <C extends Collection<@NotNull String>> @Nullable C findIds(final @NotNull IntFunction<@NotNull C> factory) {
     try (final var directoryStream = Files.newDirectoryStream(this.folderPath)) {
       final var foundIds = factory.apply(1);
       directoryStream.forEach(path -> foundIds.add(this.extractId(path)));
@@ -92,7 +89,7 @@ public class GsonModelRepository<ModelType extends Model> extends AsyncModelRepo
   }
 
   @Override
-  public <C extends Collection<@NotNull ModelType>> @Nullable C findAllSync(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
+  public <C extends Collection<@NotNull ModelType>> @Nullable C findAll(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
     final var foundModels = factory.apply(1);
     this.forEachSync(model -> {
       postLoadAction.accept(model);
@@ -116,12 +113,12 @@ public class GsonModelRepository<ModelType extends Model> extends AsyncModelRepo
   }
 
   @Override
-  public boolean existsSync(final @NotNull String id) {
+  public boolean exists(final @NotNull String id) {
     return Files.exists(this.resolveChild(id));
   }
 
   @Override
-  public @NotNull ModelType saveSync(final @NotNull ModelType model) {
+  public @NotNull ModelType save(final @NotNull ModelType model) {
     final var modelPath = this.resolveChild(model.id());
     try {
       if (Files.notExists(modelPath)) {
@@ -142,7 +139,7 @@ public class GsonModelRepository<ModelType extends Model> extends AsyncModelRepo
   }
 
   @Override
-  public boolean deleteSync(final @NotNull String id) {
+  public boolean delete(final @NotNull String id) {
     try {
       return Files.deleteIfExists(this.resolveChild(id));
     } catch (final IOException e) {
@@ -151,16 +148,16 @@ public class GsonModelRepository<ModelType extends Model> extends AsyncModelRepo
   }
 
   @Override
-  public @Nullable ModelType deleteAndRetrieveSync(final @NotNull String id) {
-    final var model = this.findSync(id);
+  public @Nullable ModelType deleteAndRetrieve(final @NotNull String id) {
+    final var model = this.find(id);
     if (model != null) {
-      this.deleteSync(id);
+      this.delete(id);
     }
     return model;
   }
 
   @Override
-  public void deleteAllSync() {
+  public void deleteAll() {
     try (final var walk = Files.walk(this.folderPath, 1)) {
       walk.filter(Files::isRegularFile)
         .forEach(path -> {

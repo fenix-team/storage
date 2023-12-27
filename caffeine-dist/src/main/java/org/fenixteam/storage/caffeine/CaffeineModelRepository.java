@@ -26,6 +26,7 @@ package org.fenixteam.storage.caffeine;
 import com.github.benmanes.caffeine.cache.Cache;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -63,64 +64,59 @@ public class CaffeineModelRepository<ModelType extends Model> implements ModelRe
     return new CaffeineModelRepository<>(cache);
   }
 
+
   @Override
-  public @Nullable ModelType findSync(final @NotNull String id) {
-    return this.cache.getIfPresent(id);
+  public boolean delete(final @NotNull String id) {
+    return this.deleteAndRetrieve(id) != null;
   }
 
   @Override
-  public @Nullable Collection<@NotNull String> findIdsSync() {
-    return this.cache.asMap().keySet();
+  public void deleteAll() {
+    this.cache.invalidateAll();
   }
 
   @Override
-  public <C extends Collection<@NotNull String>> @Nullable C findIdsSync(final @NotNull IntFunction<@NotNull C> factory) {
-    final var keys = this.cache.asMap().keySet();
-    final var foundIds = factory.apply(keys.size());
-    foundIds.addAll(keys);
-    return foundIds;
-  }
-
-  @Override
-  public <C extends Collection<@NotNull ModelType>> @Nullable C findAllSync(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
-    final var values = this.cache.asMap().values();
-    final var foundModels = factory.apply(values.size());
-    for (final var value : values) {
-      postLoadAction.accept(value);
-      foundModels.add(value);
-    }
-    return foundModels;
-  }
-
-  @Override
-  public void forEachSync(final @NotNull Consumer<@NotNull ModelType> action) {
-    this.cache.asMap().values().forEach(action);
-  }
-
-  @Override
-  public boolean existsSync(final @NotNull String id) {
-    return this.cache.asMap().containsKey(id);
-  }
-
-  @Override
-  public @NotNull ModelType saveSync(final @NotNull ModelType model) {
-    this.cache.put(model.id(), model);
-    return model;
-  }
-
-  @Override
-  public boolean deleteSync(final @NotNull String id) {
-    this.cache.invalidate(id);
-    return true;
-  }
-
-  @Override
-  public @Nullable ModelType deleteAndRetrieveSync(final @NotNull String id) {
+  public @Nullable ModelType deleteAndRetrieve(final @NotNull String id) {
     return this.cache.asMap().remove(id);
   }
 
   @Override
-  public void deleteAllSync() {
-    this.cache.invalidateAll();
+  public boolean exists(final @NotNull String id) {
+    return this.cache.asMap().containsKey(id);
+  }
+
+  @Override
+  public @Nullable ModelType find(final @NotNull String id) {
+    return this.cache.getIfPresent(id);
+  }
+
+  @Override
+  public <C extends Collection<@NotNull ModelType>> @Nullable C findAll(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
+    return null;
+  }
+
+  @Override
+  public @Nullable Collection<@NotNull String> findIds() {
+    return null;
+  }
+
+  @Override
+  public <C extends Collection<@NotNull String>> @Nullable C findIds(final @NotNull IntFunction<@NotNull C> factory) {
+    return null;
+  }
+
+  @Override
+  public @NotNull Iterator<ModelType> iterator() {
+    return null;
+  }
+
+  @Override
+  public @NotNull Iterator<String> iteratorIds() {
+    return null;
+  }
+
+  @Override
+  public @NotNull ModelType save(@NotNull final ModelType model) {
+    return null;
   }
 }

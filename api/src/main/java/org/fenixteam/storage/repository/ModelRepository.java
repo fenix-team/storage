@@ -24,6 +24,7 @@
 package org.fenixteam.storage.repository;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import org.fenixteam.storage.model.Model;
@@ -38,7 +39,45 @@ import org.jetbrains.annotations.Nullable;
  * @param <ModelType> The {@link Model} type that this repository will handle.
  * @since 1.0.0
  */
-public interface ModelRepository<ModelType extends Model> {
+public interface ModelRepository<ModelType extends Model> extends Iterable<ModelType> {
+  /**
+   * Deletes the specified {@link ModelType} from the repository. Note that this method doesn't return
+   * the deleted {@link ModelType}, if you want to retrieve the deleted {@link ModelType} use
+   * {@link #deleteAndRetrieve(String)}. Also, this method can delete permanently the {@link ModelType}
+   * from the repository, so it's important to note that this method can be dangerous if you don't
+   * know what you're doing.
+   *
+   * @param id The id of the {@link ModelType} to delete.
+   * @return {@code true} if the {@link ModelType} was deleted successfully, {@code false} otherwise.
+   * @since 1.0.0
+   */
+  boolean delete(final @NotNull String id);
+
+  /**
+   * Deletes all the {@link ModelType}s from the repository.
+   *
+   * @since 1.0.0
+   */
+  void deleteAll();
+
+  /**
+   * Deletes the specified {@link ModelType} from the repository and returns it.
+   *
+   * @param id The id of the {@link ModelType} to delete.
+   * @return The deleted {@link ModelType}, or {@code null} if it doesn't exist.
+   * @since 1.0.0
+   */
+  @Nullable ModelType deleteAndRetrieve(final @NotNull String id);
+
+  /**
+   * Checks if the {@link ModelType} with the specified id exists in the repository.
+   *
+   * @param id The id of the {@link ModelType}.
+   * @return {@code true} if the {@link ModelType} with the specified id exists, {@code false} otherwise.
+   * @since 1.0.0
+   */
+  boolean exists(final @NotNull String id);
+
   /**
    * Returns the {@link ModelType} with the specified id, or {@code null} if it doesn't exist.
    *
@@ -46,18 +85,42 @@ public interface ModelRepository<ModelType extends Model> {
    * @return The {@link ModelType} with the specified id, or {@code null} if it doesn't exist.
    * @since 1.0.0
    */
-  @Nullable ModelType findSync(final @NotNull String id);
+  @Nullable ModelType find(final @NotNull String id);
+
+  /**
+   * Finds all the {@link ModelType} in the repository and returns them in the specified {@link Collection}.
+   *
+   * @param factory The factory to create the {@link Collection} to return.
+   * @param <C>     The type of the {@link Collection} to return.
+   * @return A {@link Collection} containing all the {@link ModelType}s in the repository or {@code null} if the repository is empty.
+   * @since 1.0.0
+   */
+  default <C extends Collection<@NotNull ModelType>> @Nullable C findAll(final @NotNull IntFunction<@NotNull C> factory) {
+    return this.findAll(modelType -> {}, factory);
+  }
+
+  /**
+   * Finds all the models in the repository and returns them in the specified {@link Collection}, it also executes
+   * the specified action for each model after it's loaded, so you mustn't iterate over the returned {@link Collection}.
+   *
+   * @param postLoadAction The action to execute for each {@link ModelType} after it's loaded.
+   * @param factory        The factory to create the {@link Collection} to return.
+   * @param <C>            The type of the {@link Collection} to return.
+   * @return A {@link Collection} containing all the {@link ModelType} in the repository or {@code null} if the repository is empty.
+   * @since 1.0.0
+   */
+  <C extends Collection<@NotNull ModelType>> @Nullable C findAll(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory);
 
   /**
    * Returns a {@link Collection} of all the ids of the {@link ModelType}s in the repository. This method
    * doesn't care about the type of the {@link Collection} to return. If you want to specify the type
-   * of the {@link Collection} to return, use {@link #findIdsSync(IntFunction)}.
+   * of the {@link Collection} to return, use {@link #findIds(IntFunction)}.
    *
    * @return A {@link Collection} containing all the ids of the {@link ModelType}s in the repository or {@code null} if the repository is empty.
-   * @see #findIdsSync(IntFunction)
+   * @see #findIds(IntFunction)
    * @since 1.0.0
    */
-  @Nullable Collection<@NotNull String> findIdsSync();
+  @Nullable Collection<@NotNull String> findIds();
 
   /**
    * Returns a {@link Collection} of all the ids of the {@link ModelType}s in the repository. This method
@@ -71,48 +134,50 @@ public interface ModelRepository<ModelType extends Model> {
    * @return A {@link Collection} containing all the ids of the {@link ModelType}s in the repository or {@code null} if the repository is empty.
    * @since 1.0.0
    */
-  <C extends Collection<@NotNull String>> @Nullable C findIdsSync(final @NotNull IntFunction<@NotNull C> factory);
+  <C extends Collection<@NotNull String>> @Nullable C findIds(final @NotNull IntFunction<@NotNull C> factory);
 
   /**
-   * Finds all the {@link ModelType} in the repository and returns them in the specified {@link Collection}.
+   * Iterates over the {@link ModelType}s in the repository and executes the specified action for each one.
    *
-   * @param factory The factory to create the {@link Collection} to return.
-   * @param <C>     The type of the {@link Collection} to return.
-   * @return A {@link Collection} containing all the {@link ModelType}s in the repository or {@code null} if the repository is empty.
+   * @param action The action to be performed for each element in the repository.
    * @since 1.0.0
    */
-  default <C extends Collection<@NotNull ModelType>> @Nullable C findAllSync(final @NotNull IntFunction<@NotNull C> factory) {
-    return this.findAllSync(modelType -> {}, factory);
+  @Override
+  default void forEach(final @NotNull Consumer<? super ModelType> action) {
+    for (final var model : this) {
+      action.accept(model);
+    }
   }
 
   /**
-   * Finds all the models in the repository and returns them in the specified {@link Collection}, it also executes
-   * the specified action for each model after it's loaded, so you mustn't iterate over the returned {@link Collection}.
+   * Iterates over the ids of the {@link ModelType}s in the repository and executes the specified action for each one.
    *
-   * @param postLoadAction The action to execute for each {@link ModelType} after it's loaded.
-   * @param factory        The factory to create the {@link Collection} to return.
-   * @param <C>            The type of the {@link Collection} to return.
-   * @return A {@link Collection} containing all the {@link ModelType} in the repository or {@code null} if the repository is empty.
+   * @param action The action to be performed for each element in the repository.
    * @since 1.0.0
    */
-  <C extends Collection<@NotNull ModelType>> @Nullable C findAllSync(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory);
+  default void forEachIds(final @NotNull Consumer<? super String> action) {
+    final var iterator = this.iteratorIds();
+    while (iterator.hasNext()) {
+      action.accept(iterator.next());
+    }
+  }
 
   /**
-   * Iterates over all the {@link ModelType}s in the repository and executes the specified action for each one.
+   * Returns the {@link Iterator} of the {@link ModelType}s in the repository.
    *
-   * @param action The action to execute for each {@link ModelType}.
+   * @return The {@link Iterator} of the {@link ModelType}s in the repository.
    * @since 1.0.0
    */
-  void forEachSync(final @NotNull Consumer<@NotNull ModelType> action);
+  @Override
+  @NotNull Iterator<ModelType> iterator();
 
   /**
-   * Checks if the {@link ModelType} with the specified id exists in the repository.
+   * Returns the {@link Iterator} of the ids of the ids which represents the {@link ModelType}s in the repository.
    *
-   * @param id The id of the {@link ModelType}.
-   * @return {@code true} if the {@link ModelType} with the specified id exists, {@code false} otherwise.
+   * @return The {@link Iterator} of the ids of the ids which represents the {@link ModelType}s in the repository.
    * @since 1.0.0
    */
-  boolean existsSync(final @NotNull String id);
+  @NotNull Iterator<String> iteratorIds();
 
   /**
    * Saves the specified {@link ModelType} in the repository.
@@ -122,34 +187,5 @@ public interface ModelRepository<ModelType extends Model> {
    * @since 1.0.0
    */
   @Contract("_ -> param1")
-  @NotNull ModelType saveSync(final @NotNull ModelType model);
-
-  /**
-   * Deletes the specified {@link ModelType} from the repository. Note that this method doesn't return
-   * the deleted {@link ModelType}, if you want to retrieve the deleted {@link ModelType} use
-   * {@link #deleteAndRetrieveSync(String)}. Also, this method can delete permanently the {@link ModelType}
-   * from the repository, so it's important to note that this method can be dangerous if you don't
-   * know what you're doing.
-   *
-   * @param id The id of the {@link ModelType} to delete.
-   * @return {@code true} if the {@link ModelType} was deleted successfully, {@code false} otherwise.
-   * @since 1.0.0
-   */
-  boolean deleteSync(final @NotNull String id);
-
-  /**
-   * Deletes the specified {@link ModelType} from the repository and returns it.
-   *
-   * @param id The id of the {@link ModelType} to delete.
-   * @return The deleted {@link ModelType}, or {@code null} if it doesn't exist.
-   * @since 1.0.0
-   */
-  @Nullable ModelType deleteAndRetrieveSync(final @NotNull String id);
-
-  /**
-   * Deletes all the {@link ModelType}s from the repository.
-   *
-   * @since 1.0.0
-   */
-  void deleteAllSync();
+  @NotNull ModelType save(final @NotNull ModelType model);
 }

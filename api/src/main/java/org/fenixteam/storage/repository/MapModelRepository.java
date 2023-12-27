@@ -25,6 +25,7 @@ package org.fenixteam.storage.repository;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -104,6 +105,40 @@ public final class MapModelRepository<ModelType extends Model> implements ModelR
   }
 
   /**
+   * Deletes the {@link Model} with the specified id from the repository.
+   *
+   * @param id The id of the {@link Model} to delete.
+   * @return True if the {@link Model} was deleted, false otherwise.
+   * @since 1.0.0
+   */
+  @Override
+  public boolean delete(final @NotNull String id) {
+    return this.cache.remove(id) != null;
+  }
+
+  @Override
+  public void deleteAll() {
+    this.cache.clear();
+  }
+
+  @Override
+  public @Nullable ModelType deleteAndRetrieve(final @NotNull String id) {
+    return this.cache.remove(id);
+  }
+
+  /**
+   * Returns true if the model with the specified id exists, false otherwise.
+   *
+   * @param id The id of the model.
+   * @return True if the model with the specified id exists, false otherwise.
+   * @since 1.0.0
+   */
+  @Override
+  public boolean exists(final @NotNull String id) {
+    return this.cache.containsKey(id);
+  }
+
+  /**
    * Returns the {@link ModelType} with the specified id using {@link Map#get(Object)}.
    *
    * @param id The id of the model.
@@ -111,39 +146,8 @@ public final class MapModelRepository<ModelType extends Model> implements ModelR
    * @since 1.0.0
    */
   @Override
-  public @Nullable ModelType findSync(final @NotNull String id) {
+  public @Nullable ModelType find(final @NotNull String id) {
     return this.cache.get(id);
-  }
-
-  /**
-   * Returns a the {@link Map#keySet()} of the {@link Map} used as the storage.
-   *
-   * @return The {@link Map#keySet()} of the {@link Map} used as the storage.
-   * @see #findIdsSync(IntFunction)
-   * @since 1.0.0
-   */
-  @Override
-  public @NotNull Collection<@NotNull String> findIdsSync() {
-    return this.cache.keySet();
-  }
-
-  /**
-   * Maps all the ids of the models in the internal {@link Map} and returns them in the specified {@link Collection}.
-   *
-   * @param factory The factory to create the {@link Collection} to return.
-   * @param <C>     The type of the {@link Collection} to return.
-   * @return The created {@link Collection} with the factory containing all the ids of the models in the repository.
-   * @since 1.0.0
-   */
-  @Override
-  public <C extends Collection<@NotNull String>> @Nullable C findIdsSync(final @NotNull IntFunction<@NotNull C> factory) {
-    final var keys = this.cache.keySet();
-    if (keys.isEmpty()) {
-      return null;
-    }
-    final var collection = factory.apply(keys.size());
-    collection.addAll(keys);
-    return collection;
   }
 
   /**
@@ -156,7 +160,7 @@ public final class MapModelRepository<ModelType extends Model> implements ModelR
    * @since 1.0.0
    */
   @Override
-  public <C extends Collection<@NotNull ModelType>> @Nullable C findAllSync(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
+  public <C extends Collection<@NotNull ModelType>> @Nullable C findAll(final @NotNull Consumer<@NotNull ModelType> postLoadAction, final @NotNull IntFunction<@NotNull C> factory) {
     final var values = this.cache.values();
     if (values.isEmpty()) {
       return null;
@@ -169,21 +173,45 @@ public final class MapModelRepository<ModelType extends Model> implements ModelR
     return collection;
   }
 
-  @Override
-  public void forEachSync(final @NotNull Consumer<@NotNull ModelType> action) {
-    this.cache.values().forEach(action);
-  }
-
   /**
-   * Returns true if the model with the specified id exists, false otherwise.
+   * Returns a the {@link Map#keySet()} of the {@link Map} used as the storage.
    *
-   * @param id The id of the model.
-   * @return True if the model with the specified id exists, false otherwise.
+   * @return The {@link Map#keySet()} of the {@link Map} used as the storage.
+   * @see #findIds(IntFunction)
    * @since 1.0.0
    */
   @Override
-  public boolean existsSync(final @NotNull String id) {
-    return this.cache.containsKey(id);
+  public @NotNull Collection<@NotNull String> findIds() {
+    return this.cache.keySet();
+  }
+
+  /**
+   * Maps all the ids of the models in the internal {@link Map} and returns them in the specified {@link Collection}.
+   *
+   * @param factory The factory to create the {@link Collection} to return.
+   * @param <C>     The type of the {@link Collection} to return.
+   * @return The created {@link Collection} with the factory containing all the ids of the models in the repository.
+   * @since 1.0.0
+   */
+  @Override
+  public <C extends Collection<@NotNull String>> @Nullable C findIds(final @NotNull IntFunction<@NotNull C> factory) {
+    final var keys = this.cache.keySet();
+    if (keys.isEmpty()) {
+      return null;
+    }
+    final var collection = factory.apply(keys.size());
+    collection.addAll(keys);
+    return collection;
+  }
+
+  @Override
+  public @NotNull Iterator<ModelType> iterator() {
+    return this.cache.values().iterator();
+  }
+
+  @Override
+  public @NotNull Iterator<String> iteratorIds() {
+    return this.cache.keySet().iterator();
   }
 
   /**
@@ -194,30 +222,8 @@ public final class MapModelRepository<ModelType extends Model> implements ModelR
    * @since 1.0.0
    */
   @Override
-  public @NotNull ModelType saveSync(final @NotNull ModelType model) {
+  public @NotNull ModelType save(final @NotNull ModelType model) {
     this.cache.put(model.id(), model);
     return model;
-  }
-
-  /**
-   * Deletes the {@link Model} with the specified id from the repository.
-   *
-   * @param id The id of the {@link Model} to delete.
-   * @return True if the {@link Model} was deleted, false otherwise.
-   * @since 1.0.0
-   */
-  @Override
-  public boolean deleteSync(final @NotNull String id) {
-    return this.cache.remove(id) != null;
-  }
-
-  @Override
-  public @Nullable ModelType deleteAndRetrieveSync(final @NotNull String id) {
-    return this.cache.remove(id);
-  }
-
-  @Override
-  public void deleteAllSync() {
-    this.cache.clear();
   }
 }
