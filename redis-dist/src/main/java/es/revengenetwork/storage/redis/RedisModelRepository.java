@@ -1,13 +1,17 @@
 package es.revengenetwork.storage.redis;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.internal.bind.TypeAdapters;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import es.revengenetwork.storage.codec.ModelDeserializer;
 import es.revengenetwork.storage.codec.ModelSerializer;
 import es.revengenetwork.storage.model.Model;
 import es.revengenetwork.storage.repository.AbstractAsyncModelRepository;
 import es.revengenetwork.storage.repository.ModelRepository;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,7 +26,6 @@ import redis.clients.jedis.JedisPool;
 
 @SuppressWarnings("unused")
 public class RedisModelRepository<ModelType extends Model> extends AbstractAsyncModelRepository<ModelType> {
-  protected final Gson gson;
   protected final ModelSerializer<ModelType, JsonObject> modelSerializer;
   protected final ModelDeserializer<ModelType, JsonObject> modelDeserializer;
   protected final JedisPool jedisPool;
@@ -32,7 +35,6 @@ public class RedisModelRepository<ModelType extends Model> extends AbstractAsync
 
   protected RedisModelRepository(
     final @NotNull Executor executor,
-    final @NotNull Gson gson,
     final @NotNull ModelSerializer<ModelType, JsonObject> modelSerializer,
     final @NotNull ModelDeserializer<ModelType, JsonObject> modelDeserializer,
     final @NotNull JedisPool jedisPool,
@@ -41,7 +43,6 @@ public class RedisModelRepository<ModelType extends Model> extends AbstractAsync
     final int expireAfterAccess
   ) {
     super(executor);
-    this.gson = gson;
     this.modelSerializer = modelSerializer;
     this.modelDeserializer = modelDeserializer;
     this.jedisPool = jedisPool;
@@ -61,7 +62,14 @@ public class RedisModelRepository<ModelType extends Model> extends AbstractAsync
       final var object = this.modelSerializer.serialize(model);
       final var map = new HashMap<String, String>(object.size());
       for (final var entry : object.entrySet()) {
-        map.put(entry.getKey(), this.gson.toJson(entry.getValue()));
+        final var stringWriter = new StringWriter();
+        try (final var writer = new JsonWriter(stringWriter)) {
+          writer.setSerializeNulls(false);
+          TypeAdapters.JSON_ELEMENT.write(writer, entry.getValue());
+        } catch (final IOException e) {
+          throw new RuntimeException(e);
+        }
+        map.put(entry.getKey(), stringWriter.toString());
       }
       final var key = this.tableName + ":" + model.id();
       jedis.hset(key, map);
@@ -158,10 +166,14 @@ public class RedisModelRepository<ModelType extends Model> extends AbstractAsync
     if (this.expireAfterAccess > 0) {
       jedis.expire(key, this.expireAfterAccess);
     }
-    final var object = new JsonObject();
+    final var jsonObject = new JsonObject();
     for (final var entry : map.entrySet()) {
-      object.add(entry.getKey(), this.gson.fromJson(entry.getValue(), JsonElement.class));
+      try (final var reader = new JsonReader(new StringReader(entry.getValue()))) {
+        jsonObject.add(entry.getKey(), TypeAdapters.JSON_ELEMENT.read(reader));
+      } catch (final IOException e) {
+        throw new RuntimeException(e);
+      }
     }
-    return this.modelDeserializer.deserialize(object);
+    return this.modelDeserializer.deserialize(jsonObject);
   }
 }

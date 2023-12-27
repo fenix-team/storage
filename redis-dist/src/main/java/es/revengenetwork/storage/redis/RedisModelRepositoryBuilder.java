@@ -1,6 +1,5 @@
 package es.revengenetwork.storage.redis;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import es.revengenetwork.storage.codec.ModelDeserializer;
 import es.revengenetwork.storage.codec.ModelSerializer;
@@ -15,7 +14,6 @@ import redis.clients.jedis.JedisPool;
 @SuppressWarnings("unused")
 public class RedisModelRepositoryBuilder<ModelType extends Model>
   extends AbstractModelRepositoryBuilder<ModelType> {
-  private Gson gson;
   private String tableName;
   private int expireAfterSave;
   private int expireAfterAccess;
@@ -24,12 +22,6 @@ public class RedisModelRepositoryBuilder<ModelType extends Model>
   private ModelDeserializer<ModelType, JsonObject> modelDeserializer;
 
   protected RedisModelRepositoryBuilder() {
-  }
-
-  @Contract("_ -> this")
-  public @NotNull RedisModelRepositoryBuilder<ModelType> gson(final @NotNull Gson gson) {
-    this.gson = gson;
-    return this;
   }
 
   @Contract("_ -> this")
@@ -82,7 +74,6 @@ public class RedisModelRepositoryBuilder<ModelType extends Model>
     }
     return new RedisModelRepository<>(
       executor,
-      this.gson,
       this.modelSerializer,
       this.modelDeserializer,
       this.jedisPool,
