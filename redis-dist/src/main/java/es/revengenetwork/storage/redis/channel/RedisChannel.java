@@ -1,8 +1,12 @@
 package es.revengenetwork.storage.redis.channel;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import java.lang.reflect.Type;
+import com.google.gson.internal.bind.TypeAdapters;
+import com.google.gson.stream.JsonWriter;
+import es.revengenetwork.storage.codec.ModelDeserializer;
+import es.revengenetwork.storage.codec.ModelSerializer;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -11,37 +15,37 @@ import redis.clients.jedis.JedisPool;
 
 @SuppressWarnings("unused")
 public class RedisChannel<MessageType> {
-  private final String parentChannel;
-  private final String serverId;
-  private final String name;
-  private final Type type;
+  private final ModelDeserializer<MessageType, JsonObject> deserializer;
   private final JedisPool jedisPool;
   private final Set<RedisChannelListener<MessageType>> listeners;
-  private final Gson gson;
+  private final String name;
+  private final String parentChannel;
+  private final String serverId;
+  private final ModelSerializer<MessageType, JsonObject> serializer;
 
   public RedisChannel(
+    final @NotNull ModelDeserializer<MessageType, JsonObject> deserializer,
     final @NotNull String parentChannel,
     final @NotNull String serverId,
     final @NotNull String name,
-    final @NotNull Type type,
     final @NotNull JedisPool jedisPool,
-    final @NotNull Gson gson
+    final @NotNull ModelSerializer<MessageType, JsonObject> serializer
   ) {
+    this.deserializer = deserializer;
     this.parentChannel = parentChannel;
     this.serverId = serverId;
     this.name = name;
-    this.type = type;
     this.jedisPool = jedisPool;
-    this.gson = gson;
+    this.serializer = serializer;
     this.listeners = new HashSet<>();
+  }
+
+  public @NotNull ModelDeserializer<MessageType, JsonObject> deserializer() {
+    return this.deserializer;
   }
 
   public @NotNull String name() {
     return this.name;
-  }
-
-  public @NotNull Type type() {
-    return this.type;
   }
 
   public void sendMessage(final @NotNull MessageType message, final @Nullable String targetServer) {
@@ -51,11 +55,16 @@ public class RedisChannel<MessageType> {
     if (targetServer != null) {
       objectToSend.addProperty("targetServer", targetServer);
     }
-    final var serializedMessage = this.gson.toJsonTree(message, this.type);
-    objectToSend.add("message", serializedMessage);
-    final var json = objectToSend.toString();
+    objectToSend.add("message", this.serializer.serialize(message));
+    final var stringWriter = new StringWriter();
+    try (final var writer = new JsonWriter(stringWriter)) {
+      writer.setSerializeNulls(false);
+      TypeAdapters.JSON_ELEMENT.write(writer, objectToSend);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
     try (final var jedis = this.jedisPool.getResource()) {
-      jedis.publish(this.parentChannel, json);
+      jedis.publish(this.parentChannel, stringWriter.toString());
     }
   }
 
