@@ -16,9 +16,8 @@ subprojects {
   apply(plugin = "com.diffplug.spotless")
 
   repositories {
-    mavenLocal()
-    maven("https://repo.revengenetwork.es/repository/libs/") {
-      name = "fenixRepository"
+    maven("https://repo.houtave.com/repository/libs/") {
+      name = "houtaveRepository"
       credentials(PasswordCredentials::class)
     }
   }
@@ -67,8 +66,8 @@ subprojects {
 
     repositories {
       maven {
-        name = "fenixRepository"
-        val repositoryUrl = "https://repo.revengenetwork.es/repository/libs-${
+        name = "houtaveRepository"
+        val repositoryUrl = "https://repo.houtave.com/repository/libs-${
           if (version.toString().endsWith("SNAPSHOT")) "snapshots" else "releases"
         }/"
         url = uri(repositoryUrl)
